@@ -31,4 +31,9 @@ public class OperacionLocalDataSourceImpl implements OperacionLocalDataSource{
     public void agregarOperacionPendiente(Operacion operacion) {
         dao.agregarOperacionPendiente(operacion);
     }
+
+    @Override
+    public Long getUltimoIdOperacionPendiente() {
+        return dao.getUltimoIdOperacionPendiente();
+    }
 }

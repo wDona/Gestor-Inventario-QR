@@ -1,14 +1,22 @@
-package dev.wdona.gestorinventarioqr.data.repository.impl;
+package dev.wdona.gestorinventarioqr.data.repository;
+
+import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.EstanteriaLocalDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.remote.impl.EstanteriaRemoteDataSourceImpl;
-import dev.wdona.gestorinventarioqr.data.repository.EstanteriaRepository;
+import dev.wdona.gestorinventarioqr.data.relation.RelacionEstanteriaProducto;
+import dev.wdona.gestorinventarioqr.domain.repository.EstanteriaRepository;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 
 public class EstanteriaRepositoryImpl implements EstanteriaRepository {
 
     EstanteriaRemoteDataSourceImpl remote;
     EstanteriaLocalDataSourceImpl local;
+
+    public EstanteriaRepositoryImpl(EstanteriaRemoteDataSourceImpl remote, EstanteriaLocalDataSourceImpl local) {
+        this.remote = remote;
+        this.local = local;
+    }
 
     @Override
     public Estanteria getEstanteriaById(Long id) {
@@ -24,4 +32,16 @@ public class EstanteriaRepositoryImpl implements EstanteriaRepository {
         }
         return local.getEstanteriaById(id);
     }
+
+    @Override
+    public RelacionEstanteriaProducto getEstanteriaConProductosById(Long idEstanteria) {
+        try {
+            return local.getEstanteriaConProductosById(idEstanteria);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return null;
+    }
+
+
 }

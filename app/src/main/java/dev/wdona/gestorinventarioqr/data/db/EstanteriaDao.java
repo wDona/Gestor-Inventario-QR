@@ -14,6 +14,6 @@ public interface EstanteriaDao {
 
     @Transaction
     @Query("SELECT * FROM Estanteria WHERE id = :idEstanteria")
-    List<RelacionEstanteriaProducto> getEstanteriaConProductosById(Long idEstanteria);
+    RelacionEstanteriaProducto getEstanteriaConProductosById(Long idEstanteria);
 
 }

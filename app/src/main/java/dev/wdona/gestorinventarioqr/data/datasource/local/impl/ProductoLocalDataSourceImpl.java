@@ -9,12 +9,12 @@ import dev.wdona.gestorinventarioqr.domain.model.Producto;
 public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     ProductoDao dao;
 
-    ProductoLocalDataSourceImpl(ProductoDao dao, OperacionDao operacionDao) {
+    ProductoLocalDataSourceImpl(ProductoDao dao) {
         this.dao = dao;
     }
 
     @Override
-    public void addUndsProduct(Producto producto) {
+    public void addUndsProduct(Producto producto, int cantidad) {
         try {
             dao.addUndsProduct(producto.getId(), producto.getCantidad());
         } catch (Exception e) {
@@ -23,9 +23,9 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     }
 
     @Override
-    public void removeUndsProduct(Producto producto) {
+    public void removeUndsProduct(Producto producto, int cantidad) {
         try {
-            dao.removeUndsProduct(producto.getId(), producto.getCantidad());
+            dao.removeUndsProduct(producto.getId(), cantidad);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }

@@ -14,18 +14,18 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     }
 
     @Override
-    public void addUndsProduct(Producto producto) {
+    public void addUndsProduct(Producto producto, int cantidad) {
         try {
-            // Actualizar el producto y el producto de la lista de la estanteria
+            api.addUndsProduct(producto, cantidad);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
 
     @Override
-    public void removeUndsProduct(Producto producto) {
+    public void removeUndsProduct(Producto producto, int cantidad) {
         try {
-            // Actualizar el producto y el producto de la lista de la estanteria
+            api.removeUndsProduct(producto, cantidad);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -34,7 +34,7 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     @Override
     public void assignProductToEstanteria(Producto producto, Estanteria estanteria) {
         try {
-            // Actualizar el producto y el producto de la lista de la estanteria
+            api.assignProductToEstanteria(producto, estanteria);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -42,6 +42,6 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
 
     @Override
     public void sincronizarPendientes(List<Producto> productosPendientes) {
-
+        // TODO
     }
 }

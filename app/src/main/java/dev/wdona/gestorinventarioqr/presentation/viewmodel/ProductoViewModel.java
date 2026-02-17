@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
-import dev.wdona.gestorinventarioqr.data.repository.ProductoRepository;
+import dev.wdona.gestorinventarioqr.domain.repository.ProductoRepository;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
 public class ProductoViewModel extends ViewModel {
@@ -20,11 +20,10 @@ public class ProductoViewModel extends ViewModel {
     public LiveData<List<Producto>> productosLiveData = _productosLiveData;
 
 
-    public void addUndsProduct(String nombre, int unidadesSumadas) {
-
+    public void addUndsProduct(Producto producto, int unidadesSumadas) {
         if (unidadesSumadas <= 0) System.out.println("Error: No se pueden agregar unidades negativas o cero.");
         else {
-
+            repository.addUndsProduct(producto, unidadesSumadas);
         }
     }
 }

@@ -18,4 +18,7 @@ public interface OperacionDao {
         void actualizarEstadoById(Long id, String nuevoEstado);
         @Query("SELECT * FROM Operacion_pendiente WHERE estado = 'PENDIENTE'")
         List<Operacion> getOperacionesPendientesSinEnviar();
+
+        @Query("SELECT id FROM Operacion_pendiente ORDER BY id DESC LIMIT 1")
+        Long getUltimoIdOperacionPendiente();
 }
