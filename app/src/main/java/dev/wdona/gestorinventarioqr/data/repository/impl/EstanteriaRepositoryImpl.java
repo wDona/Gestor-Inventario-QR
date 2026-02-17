@@ -11,7 +11,7 @@ public class EstanteriaRepositoryImpl implements EstanteriaRepository {
     EstanteriaLocalDataSourceImpl local;
 
     @Override
-    public Estanteria getEstanteriaById(int id) {
+    public Estanteria getEstanteriaById(Long id) {
         try {
             Estanteria estanteria = remote.getEstanteriaById(id);
             if (estanteria != null) {

@@ -19,7 +19,7 @@ public class EstanteriaViewModel {
     private MutableLiveData<List<Estanteria>> _estanteriaLiveData = new MutableLiveData<>();
     public LiveData<List<Estanteria>> estanteriaLiveData = _estanteriaLiveData;
 
-    public Estanteria getEstanteriaById(int id) {
+    public Estanteria getEstanteriaById(Long id) {
         return repository.getEstanteriaById(id);
     }
 }

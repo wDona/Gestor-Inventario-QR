@@ -10,7 +10,7 @@ public class EstanteriaRemoteDataSourceImpl {
         this.api = api;
     }
 
-    public Estanteria getEstanteriaById(int id) {
+    public Estanteria getEstanteriaById(Long id) {
         return api.getEstanteriaById(id);
     }
 }

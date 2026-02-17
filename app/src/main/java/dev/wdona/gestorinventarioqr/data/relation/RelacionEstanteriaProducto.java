@@ -17,4 +17,6 @@ public class RelacionEstanteriaProducto {
             entityColumn = "FK_estanteriaId"
     )
     public List<ProductoEntity> productos;
+
+
 }

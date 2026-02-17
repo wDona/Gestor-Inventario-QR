@@ -1,5 +1,7 @@
 package dev.wdona.gestorinventarioqr.data.db;
 
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
@@ -13,7 +15,4 @@ public interface ProductoDao {
     void removeUndsProduct(Long productoId, int cantidad);
     @Query("UPDATE Producto SET FK_estanteriaId = :estanteriaId WHERE id = :productoId")
     void assignProductToEstanteria(Long productoId, Long estanteriaId);
-
-    // TODO
-    void addPendienteProduct(Long id, int cantidad);
 }

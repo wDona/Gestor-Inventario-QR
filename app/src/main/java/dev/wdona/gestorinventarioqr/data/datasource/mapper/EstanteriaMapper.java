@@ -15,6 +15,10 @@ public class EstanteriaMapper {
     }
 
     public static Estanteria toDomain(EstanteriaEntity entity, List<Producto> productos) {
-        return new Estanteria(entity.getId(), entity.getNombre(), productos);
+        return new Estanteria(
+                entity.getId(),
+                entity.getNombre(),
+                productos
+        );
     }
 }

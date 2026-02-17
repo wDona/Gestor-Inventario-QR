@@ -10,7 +10,7 @@ public class EstanteriaLocalDataSourceImpl {
         this.dao = dao;
     }
 
-    public Estanteria getEstanteriaById(int id) {
+    public Estanteria getEstanteriaById(Long id) {
         return dao.getEstanteriaById(id);
     }
 }
