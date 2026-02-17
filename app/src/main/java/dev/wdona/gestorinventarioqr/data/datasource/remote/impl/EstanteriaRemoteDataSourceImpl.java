@@ -1,4 +1,4 @@
-package dev.wdona.gestorinventarioqr.data.datasource;
+package dev.wdona.gestorinventarioqr.data.datasource.remote.impl;
 
 import dev.wdona.gestorinventarioqr.data.api.EstanteriaApi;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;

@@ -1,7 +1,8 @@
-package dev.wdona.gestorinventarioqr.data.repository;
+package dev.wdona.gestorinventarioqr.data.repository.impl;
 
-import dev.wdona.gestorinventarioqr.data.datasource.ProductoLocalDataSourceImpl;
-import dev.wdona.gestorinventarioqr.data.datasource.ProductoRemoteDataSourceImpl;
+import dev.wdona.gestorinventarioqr.data.datasource.local.impl.ProductoLocalDataSourceImpl;
+import dev.wdona.gestorinventarioqr.data.datasource.remote.impl.ProductoRemoteDataSourceImpl;
+import dev.wdona.gestorinventarioqr.data.repository.ProductoRepository;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 

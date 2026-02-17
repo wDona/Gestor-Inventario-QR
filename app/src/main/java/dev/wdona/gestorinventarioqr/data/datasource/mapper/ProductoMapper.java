@@ -1,4 +1,4 @@
-package dev.wdona.gestorinventarioqr.data.mapper;
+package dev.wdona.gestorinventarioqr.data.datasource.mapper;
 
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;

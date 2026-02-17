@@ -1,4 +1,4 @@
-package dev.wdona.gestorinventarioqr.data.datasource;
+package dev.wdona.gestorinventarioqr.data.datasource.local.impl;
 
 import dev.wdona.gestorinventarioqr.data.db.EstanteriaDao;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;

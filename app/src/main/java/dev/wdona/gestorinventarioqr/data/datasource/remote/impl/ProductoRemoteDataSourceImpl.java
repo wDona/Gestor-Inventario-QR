@@ -1,14 +1,16 @@
-package dev.wdona.gestorinventarioqr.data.datasource;
+package dev.wdona.gestorinventarioqr.data.datasource.remote.impl;
 
-import dev.wdona.gestorinventarioqr.data.db.ProductoDao;
+import java.util.List;
+
+import dev.wdona.gestorinventarioqr.data.api.ProductoApi;
+import dev.wdona.gestorinventarioqr.data.datasource.remote.ProductoRemoteDataSource;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
-public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
-    ProductoDao dao;
-
-    ProductoLocalDataSourceImpl(ProductoDao dao) {
-        this.dao  = dao;
+public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
+    ProductoApi api;
+    ProductoRemoteDataSourceImpl(ProductoApi api) {
+        this.api = api;
     }
 
     @Override
@@ -38,11 +40,8 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
         }
     }
 
-    public void addPendienteProduct(Producto producto) {
-        try {
-            // Agregar el producto a la lista de pendientes
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+    @Override
+    public void sincronizarPendientes(List<Producto> productosPendientes) {
+
     }
 }

@@ -1,4 +1,4 @@
-package dev.wdona.gestorinventarioqr.data.datasource;
+package dev.wdona.gestorinventarioqr.data.datasource.common;
 
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
