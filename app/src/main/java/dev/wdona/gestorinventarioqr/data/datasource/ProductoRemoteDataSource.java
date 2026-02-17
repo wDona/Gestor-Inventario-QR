@@ -1,9 +1,10 @@
 package dev.wdona.gestorinventarioqr.data.datasource;
 
+import java.util.List;
+
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
-public interface EstanteriaDataSource {
-    Estanteria getEstanteriaById(int id);
-    void addProducto(Estanteria estanteria, Producto producto);
+public interface ProductoRemoteDataSource extends ProductoDataSource{
+    void sincronizarPendientes(List<Producto> productosPendientes);
 }

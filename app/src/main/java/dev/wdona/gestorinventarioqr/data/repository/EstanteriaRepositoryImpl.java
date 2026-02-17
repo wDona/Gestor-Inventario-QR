@@ -1,13 +1,13 @@
 package dev.wdona.gestorinventarioqr.data.repository;
 
-import dev.wdona.gestorinventarioqr.data.datasource.LocalEstanteriaDataSource;
-import dev.wdona.gestorinventarioqr.data.datasource.RemoteEstanteriaDataSource;
+import dev.wdona.gestorinventarioqr.data.datasource.EstanteriaLocalDataSourceImpl;
+import dev.wdona.gestorinventarioqr.data.datasource.EstanteriaRemoteDataSourceImpl;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 
 public class EstanteriaRepositoryImpl implements EstanteriaRepository{
 
-    RemoteEstanteriaDataSource remote;
-    LocalEstanteriaDataSource local;
+    EstanteriaRemoteDataSourceImpl remote;
+    EstanteriaLocalDataSourceImpl local;
 
     @Override
     public Estanteria getEstanteriaById(int id) {

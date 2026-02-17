@@ -2,16 +2,17 @@ package dev.wdona.gestorinventarioqr.presentation.viewmodel;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
-import dev.wdona.gestorinventarioqr.data.repository.ProductRepository;
+import dev.wdona.gestorinventarioqr.data.repository.ProductoRepository;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
-public class ProductViewModel {
-    ProductRepository repository;
+public class ProductoViewModel extends ViewModel {
+    ProductoRepository repository;
 
-    public ProductViewModel(ProductRepository repository) {
+    public ProductoViewModel(ProductoRepository repository) {
         this.repository = repository;
     }
 

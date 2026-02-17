@@ -1,15 +1,15 @@
 package dev.wdona.gestorinventarioqr.data.repository;
 
-import dev.wdona.gestorinventarioqr.data.datasource.LocalProductDataSource;
-import dev.wdona.gestorinventarioqr.data.datasource.RemoteProductDataSource;
+import dev.wdona.gestorinventarioqr.data.datasource.ProductoLocalDataSourceImpl;
+import dev.wdona.gestorinventarioqr.data.datasource.ProductoRemoteDataSourceImpl;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
-public class ProductRepositoryImpl implements ProductRepository {
-    RemoteProductDataSource remote;
-    LocalProductDataSource local;
+public class ProductoRepositoryImpl implements ProductoRepository {
+    ProductoRemoteDataSourceImpl remote;
+    ProductoLocalDataSourceImpl local;
 
-    ProductRepositoryImpl(RemoteProductDataSource remote, LocalProductDataSource local) {
+    ProductoRepositoryImpl(ProductoRemoteDataSourceImpl remote, ProductoLocalDataSourceImpl local) {
         this.remote = remote;
         this.local = local;
     }

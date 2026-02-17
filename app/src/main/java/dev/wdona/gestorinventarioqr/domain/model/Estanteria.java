@@ -3,20 +3,26 @@ package dev.wdona.gestorinventarioqr.domain.model;
 import java.util.List;
 
 public class Estanteria {
-    private String id;
+    private Long id;
     private String nombre;
     private List<Producto> productos;
 
-    public Estanteria(String id, String nombre) {
+    public Estanteria(Long id, String nombre) {
         this.id = id;
         this.nombre = nombre;
     }
 
-    public String getId() {
+    public Estanteria(Long id, String nombre, List<Producto> productos) {
+        this.id = id;
+        this.nombre = nombre;
+        this.productos = productos;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

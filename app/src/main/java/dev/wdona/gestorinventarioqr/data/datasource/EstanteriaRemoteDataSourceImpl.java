@@ -3,10 +3,10 @@ package dev.wdona.gestorinventarioqr.data.datasource;
 import dev.wdona.gestorinventarioqr.data.api.EstanteriaApi;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 
-public class RemoteEstanteriaDataSource {
+public class EstanteriaRemoteDataSourceImpl {
     EstanteriaApi api;
 
-    public RemoteEstanteriaDataSource(EstanteriaApi api) {
+    public EstanteriaRemoteDataSourceImpl(EstanteriaApi api) {
         this.api = api;
     }
 
