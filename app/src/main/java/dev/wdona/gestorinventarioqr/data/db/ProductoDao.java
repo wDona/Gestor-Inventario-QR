@@ -1,11 +1,19 @@
 package dev.wdona.gestorinventarioqr.data.db;
 
+import androidx.room.Query;
+
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
 public interface ProductoDao {
-    void addUndsProduct(Producto producto);
-    void removeUndsProduct(Producto producto);
-    void assignProductToEstanteria(Producto producto, Estanteria estanteria);
+    @Query("UPDATE Producto SET cantidad = cantidad + :cantidad WHERE id = :productoId")
+    void addUndsProduct(Long productoId, int cantidad);
+
+    @Query("UPDATE Producto SET cantidad = cantidad - :cantidad WHERE id = :productoId")
+    void removeUndsProduct(Long productoId, int cantidad);
+    @Query("UPDATE Producto SET FK_estanteriaId = :estanteriaId WHERE id = :productoId")
+    void assignProductToEstanteria(Long productoId, Long estanteriaId);
+
+    // TODO
     void addPendienteProduct(Producto producto);
 }
