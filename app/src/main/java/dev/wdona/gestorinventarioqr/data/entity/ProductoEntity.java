@@ -5,7 +5,7 @@ import androidx.room.ForeignKey;
 import androidx.room.Index;
 
 @Entity(
-        tableName = "productos",
+        tableName = "Producto",
         foreignKeys = @ForeignKey(
                 entity = EstanteriaEntity.class,
                 parentColumns = "id",
