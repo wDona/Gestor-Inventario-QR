@@ -10,4 +10,7 @@ public interface OperacionLocalDataSource {
     void actualizarEstadoById(Long id, String nuevoEstado);
     List<Operacion> getOperacionesEnEstadoPendiente();
     Long getUltimoIdOperacionPendiente();
+    List<Operacion> getTodasLasOperaciones();
+    List<Operacion> getOperacionesPorEstado(String estado);
+
 }

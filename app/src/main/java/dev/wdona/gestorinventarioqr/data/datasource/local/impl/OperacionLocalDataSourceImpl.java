@@ -1,5 +1,6 @@
 package dev.wdona.gestorinventarioqr.data.datasource.local.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.datasource.local.OperacionLocalDataSource;
@@ -35,5 +36,15 @@ public class OperacionLocalDataSourceImpl implements OperacionLocalDataSource{
     @Override
     public Long getUltimoIdOperacionPendiente() {
         return dao.getUltimoIdOperacionPendiente();
+    }
+
+    @Override
+    public List<Operacion> getTodasLasOperaciones() {
+        return dao.getTodasLasOperaciones();
+    }
+
+    @Override
+    public List<Operacion> getOperacionesPorEstado(String estado) {
+        return dao.getOperacionesPorEstado(estado);
     }
 }
