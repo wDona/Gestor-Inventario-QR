@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.wdona.gestorinventarioqr.R;
 import dev.wdona.gestorinventarioqr.data.api.impl.EstanteriaApiImpl;
@@ -181,7 +182,7 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                                 estadoAsignarProductoAEstanteriaFalse();
                                 return;
                             }
-                            asignarProductoEscaneadoAEstanteriaEscaneada();
+                            mostrarConfirmacionDialog(this::asignarProductoEscaneadoAEstanteriaEscaneada, "Seguro que quieres asignar " + currentProducto.getNombre());
                             Toast.makeText(this, "Estantería escaneada para asignar producto: " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
                         }
 
@@ -222,7 +223,7 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                                 return;
                             }
                             Toast.makeText(this, "Producto escaneado para asignar a estantería: " + producto.getNombre(), Toast.LENGTH_SHORT).show();
-                            asignarProductoEscaneadoAEstanteriaEscaneada();
+                            mostrarConfirmacionDialog(this::asignarProductoEscaneadoAEstanteriaEscaneada, "Seguro que quieres asignar " + producto.getNombre());
                         } else {
                             showProductoOptionsDialog(producto);
                         }
@@ -289,33 +290,36 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                     String cantidadStr = input.getText().toString();
                     if (!cantidadStr.isEmpty()) {
                         int cantidad = Integer.parseInt(cantidadStr);
-                        executor.execute(() -> {
-                            boolean exito;
-                            if (esAgregar) {
-                                exito = productoViewModel.addUndsProduct(producto, cantidad);
-                            } else {
-                                exito = productoViewModel.removeUndsProduct(producto, cantidad);
-                            }
 
-                            if (exito) {
-                                Producto productoActualizado = productoViewModel.getProductoById(producto.getId());
-
-                                runOnUiThread(() -> {
-                                    Toast.makeText(this, "Operación realizada: " +
-                                                    (productoActualizado != null ? productoActualizado.getCantidad() + " uds" : ""),
-                                            Toast.LENGTH_SHORT).show();
-                                });
-
-                                if (currentEstanteria != null) {
-                                    actualizarProductosEnEstanteria();
+                        // Mostrar diálogo de confirmación en el hilo principal
+                        mostrarConfirmacionDialog(() -> {
+                            executor.execute(() -> {
+                                boolean exito;
+                                if (esAgregar) {
+                                    exito = productoViewModel.addUndsProduct(producto, cantidad);
+                                } else {
+                                    exito = productoViewModel.removeUndsProduct(producto, cantidad);
                                 }
 
-                            } else {
-                                runOnUiThread(() ->
-                                        Toast.makeText(this, "Error en la operación", Toast.LENGTH_SHORT).show()
-                                );
-                            }
-                        });
+                                if (exito) {
+                                    Producto productoActualizado = productoViewModel.getProductoById(producto.getId());
+
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, "Operación realizada: " +
+                                                        (productoActualizado != null ? productoActualizado.getCantidad() + " uds" : ""),
+                                                Toast.LENGTH_SHORT).show();
+                                    });
+
+                                    if (currentEstanteria != null) {
+                                        actualizarProductosEnEstanteria();
+                                    }
+                                } else {
+                                    runOnUiThread(() ->
+                                            Toast.makeText(this, "Error en la operación", Toast.LENGTH_SHORT).show()
+                                    );
+                                }
+                            });
+                        }, "¿Seguro que quieres " + (esAgregar ? "añadir" : "quitar") + " " + cantidad + " unidades a " + producto.getNombre() + "?");
                     }
                 })
                 .setNegativeButton("Cancelar", null)
@@ -393,4 +397,25 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
             });
         }
     }
+
+    private void mostrarConfirmacionDialog(Runnable ejecutarOperacion, String mensaje) {
+        new AlertDialog.Builder(this)
+                .setTitle("Confirmar operación")
+                .setMessage(mensaje)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    // Acción al confirmar
+                    ejecutarOperacion.run();
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> {
+                    // Acción al cancelar (opcional)
+                    dialog.dismiss();
+                    currentProducto = null;
+                    currentEstanteria = null;
+                    isAsignarProductoAEstanteria = false;
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+
 }
