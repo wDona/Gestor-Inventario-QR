@@ -81,12 +81,14 @@ public class JSONUtils {
         producto1.put("id", 1);
         producto1.put("nombre", "Producto A");
         producto1.put("cantidad", 10);
+        producto1.put("precio", 9.99);
         producto1.put("estanteriaId", 1);
 
         JSONObject producto2 = new JSONObject();
         producto2.put("id", 2);
         producto2.put("nombre", "Producto B");
         producto2.put("cantidad", 5);
+        producto2.put("precio", 14.99);
         producto2.put("estanteriaId", 2);
 
         anadirJSONObjectAlArchivo(producto1, nombreArchivo);

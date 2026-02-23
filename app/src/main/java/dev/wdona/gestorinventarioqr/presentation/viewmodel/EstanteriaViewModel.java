@@ -29,11 +29,16 @@ public class EstanteriaViewModel {
 
     public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
         RelacionEstanteriaProducto relacion = repository.getEstanteriaConProductosById(idEstanteria);
-        Estanteria estanteria= getEstanteriaById(idEstanteria);
-        // object.equals comprueba
-        // si el primer parametro es nulo, entonces comprueob el segundo
-        if (estanteria != null && Objects.equals(relacion.estanteria.id, estanteria.getId())) {
 
+        // Verificar que relacion no sea null
+        if (relacion == null || relacion.estanteria == null) {
+            System.out.println("Relacion o estanteria es null para id: " + idEstanteria);
+            return null;
+        }
+
+        Estanteria estanteria = getEstanteriaById(idEstanteria);
+
+        if (estanteria != null && Objects.equals(relacion.estanteria.id, estanteria.getId())) {
             // Paso los productos de relacion a dominio, asignandole esta estanteria
             List<Producto> productos = ProductoMapper.toDomainList(relacion.productos, estanteria);
             estanteria.setProductos(productos);

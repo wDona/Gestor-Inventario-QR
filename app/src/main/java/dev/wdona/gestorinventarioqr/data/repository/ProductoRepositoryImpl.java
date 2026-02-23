@@ -23,18 +23,25 @@ public class ProductoRepositoryImpl implements ProductoRepository {
         try {
             remote.addUndsProduct(producto, cantidad);
         } catch (Exception e) {
-            registro.agregarOperacionPendiente(
-                    new Operacion(
-                         registro.getUltimoIdOperacionPendiente() + 1,
-                            System.currentTimeMillis(),
-                            "ADD",
-                            producto.getId(),
-                            producto.getEstanteria().getId(),
-                            cantidad,
-                            "PENDIENTE"
-                    )
-            );
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error en remote.addUndsProduct: " + e.getMessage());
+            // Registrar operación pendiente solo si registro está inicializado
+            if (registro != null) {
+                try {
+                    registro.agregarOperacionPendiente(
+                            new Operacion(
+                                    registro.getUltimoIdOperacionPendiente() + 1,
+                                    System.currentTimeMillis(),
+                                    "ADD",
+                                    producto.getId(),
+                                    producto.getEstanteria() != null ? producto.getEstanteria().getId() : null,
+                                    cantidad,
+                                    "PENDIENTE"
+                            )
+                    );
+                } catch (Exception regError) {
+                    System.out.println("Error al registrar operación pendiente: " + regError.getMessage());
+                }
+            }
         } finally {
             local.addUndsProduct(producto, cantidad);
         }
@@ -45,18 +52,25 @@ public class ProductoRepositoryImpl implements ProductoRepository {
         try {
             remote.removeUndsProduct(producto, cantidad);
         } catch (Exception e) {
-            registro.agregarOperacionPendiente(
-                    new Operacion(
-                            registro.getUltimoIdOperacionPendiente() + 1,
-                            System.currentTimeMillis(),
-                            "REMOVE",
-                            producto.getId(),
-                            producto.getEstanteria().getId(),
-                            cantidad,
-                            "PENDIENTE"
-                    )
-            );
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error en remote.removeUndsProduct: " + e.getMessage());
+            // Registrar operación pendiente solo si registro está inicializado
+            if (registro != null) {
+                try {
+                    registro.agregarOperacionPendiente(
+                            new Operacion(
+                                    registro.getUltimoIdOperacionPendiente() + 1,
+                                    System.currentTimeMillis(),
+                                    "REMOVE",
+                                    producto.getId(),
+                                    producto.getEstanteria() != null ? producto.getEstanteria().getId() : null,
+                                    cantidad,
+                                    "PENDIENTE"
+                            )
+                    );
+                } catch (Exception regError) {
+                    System.out.println("Error al registrar operación pendiente: " + regError.getMessage());
+                }
+            }
         } finally {
             local.removeUndsProduct(producto, cantidad);
         }
@@ -67,18 +81,25 @@ public class ProductoRepositoryImpl implements ProductoRepository {
         try {
             remote.assignProductToEstanteria(producto, estanteria);
         } catch (Exception e) {
-            registro.agregarOperacionPendiente(
-                    new Operacion(
-                            registro.getUltimoIdOperacionPendiente() + 1,
-                            System.currentTimeMillis(),
-                            "MOVE",
-                            producto.getId(),
-                            estanteria.getId(),
-                            producto.getCantidad(),
-                            "PENDIENTE"
-                    )
-            );
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error en remote.assignProductToEstanteria: " + e.getMessage());
+            // Registrar operación pendiente solo si registro está inicializado
+            if (registro != null) {
+                try {
+                    registro.agregarOperacionPendiente(
+                            new Operacion(
+                                    registro.getUltimoIdOperacionPendiente() + 1,
+                                    System.currentTimeMillis(),
+                                    "MOVE",
+                                    producto.getId(),
+                                    estanteria.getId(),
+                                    producto.getCantidad(),
+                                    "PENDIENTE"
+                            )
+                    );
+                } catch (Exception regError) {
+                    System.out.println("Error al registrar operación pendiente: " + regError.getMessage());
+                }
+            }
         } finally {
             local.assignProductToEstanteria(producto, estanteria);
         }
@@ -89,19 +110,23 @@ public class ProductoRepositoryImpl implements ProductoRepository {
         Producto producto = null;
         try {
             producto = remote.getProductoById(id);
-            if (producto != null) {
-                return producto;
-            } else {
-                System.out.println("Producto null");
-            }
         } catch (Exception e) {
+            System.out.println("Error en remote.getProductoById: " + e.getMessage());
+        }
+
+        // Si remote devuelve null o falló, intentar en local
+        if (producto == null) {
             try {
                 producto = local.getProductoById(id);
-            } catch (Exception e1) {
-                System.out.println("Error: " + e1.getMessage());
+            } catch (Exception e) {
+                System.out.println("Error en local.getProductoById: " + e.getMessage());
             }
-        } finally {
-            return local.getProductoById(id);
         }
+
+        if (producto == null) {
+            System.out.println("Producto null - no encontrado ni en remote ni en local, ID: " + id);
+        }
+
+        return producto;
     }
 }

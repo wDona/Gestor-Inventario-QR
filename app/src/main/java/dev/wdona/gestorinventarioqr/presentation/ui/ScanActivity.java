@@ -50,6 +50,8 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
     private ProductoViewModel productoViewModel;
 
     private Estanteria currentEstanteria;
+    private Producto currentProducto;
+    private boolean isAsignarProductoAEstanteria = false;
     private ProductoScanAdapter adapter;
     private ExecutorService executor;
 
@@ -172,6 +174,17 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                 runOnUiThread(() -> {
                     if (estanteria != null) {
                         currentEstanteria = estanteria;
+
+                        if (isAsignarProductoAEstanteria) {
+                            if (currentProducto == null) {
+                                Toast.makeText(this, "No hay producto escaneado para asignar a la estantería. Realiza de nuevo la operacion", Toast.LENGTH_SHORT).show();
+                                estadoAsignarProductoAEstanteriaFalse();
+                                return;
+                            }
+                            asignarProductoEscaneadoAEstanteriaEscaneada();
+                            Toast.makeText(this, "Estantería escaneada para asignar producto: " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
+                        }
+
                         tvEstanteriaInfo.setText("Estantería: " + estanteria.getNombre());
                         tvEstanteriaInfo.setVisibility(View.VISIBLE);
 
@@ -201,9 +214,20 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
 
                 runOnUiThread(() -> {
                     if (producto != null) {
-                        showProductoOptionsDialog(producto);
+                        currentProducto = producto;
+                        if (isAsignarProductoAEstanteria) {
+                            if (currentEstanteria == null) {
+                                Toast.makeText(this, "No hay estantería escaneada para asignar el producto. Realiza de nuevo la operacion", Toast.LENGTH_SHORT).show();
+                                estadoAsignarProductoAEstanteriaFalse();
+                                return;
+                            }
+                            Toast.makeText(this, "Producto escaneado para asignar a estantería: " + producto.getNombre(), Toast.LENGTH_SHORT).show();
+                            asignarProductoEscaneadoAEstanteriaEscaneada();
+                        } else {
+                            showProductoOptionsDialog(producto);
+                        }
                     } else {
-                        Toast.makeText(this, "Producto no encontrado, null", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Producto no encontrado, null (handleProductoScan, id: " + productoId + ")", Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (NumberFormatException e) {
@@ -215,7 +239,7 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
     }
 
     private void showProductoOptionsDialog(Producto producto) {
-        String[] opciones = {"Añadir unidades", "Quitar unidades", "Asignar a estantería"};
+        String[] opciones = {"Añadir unidades", "Quitar unidades", "Asignar a estantería", "Mostrar detalles", "Cancelar"};
 
         new AlertDialog.Builder(this)
                 .setTitle(producto.getNombre())
@@ -228,11 +252,24 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                             showCantidadDialog(producto, false);
                             break;
                         case 2:
-                            if (currentEstanteria != null) {
-                                asignarProductoAEstanteria(producto);
-                            } else {
-                                Toast.makeText(this, "Escanea primero una estantería", Toast.LENGTH_SHORT).show();
-                            }
+                            Toast.makeText(this, "Escanea una estanteria", Toast.LENGTH_SHORT).show();
+                            currentProducto = producto;
+                            estadoAsignarProductoAEstanteriaTrue();
+                            mostrarMensajeCambioEstanteria();
+                            break;
+                        case 3:
+                            String info = "ID: " + producto.getId() +
+                                    "\nNombre: " + producto.getNombre() +
+                                    "\nCantidad: " + producto.getCantidad() +
+                                    "\nPrecio: " + producto.getPrecio() +
+                                    "\nEstantería: " + (producto.getEstanteria() != null ? producto.getEstanteria().getNombre() : "Sin asignar");
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Detalles del producto")
+                                    .setMessage(info)
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                            break;
+                        case 4:
                             break;
                     }
                 })
@@ -259,27 +296,20 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                             } else {
                                 exito = productoViewModel.removeUndsProduct(producto, cantidad);
                             }
+
                             if (exito) {
-                                // Recargar datos después de la operación
                                 Producto productoActualizado = productoViewModel.getProductoById(producto.getId());
 
-                                // Si hay estantería actual, recargar sus productos
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, "Operación realizada: " +
+                                                    (productoActualizado != null ? productoActualizado.getCantidad() + " uds" : ""),
+                                            Toast.LENGTH_SHORT).show();
+                                });
+
                                 if (currentEstanteria != null) {
-                                    Estanteria estanteriaActualizada = estanteriaViewModel.getEstanteriaConProductosById(currentEstanteria.getId());
-                                    runOnUiThread(() -> {
-                                        if (estanteriaActualizada != null) {
-                                            currentEstanteria = estanteriaActualizada;
-                                            adapter.setProductos(estanteriaActualizada.getProductos());
-                                        }
-                                        Toast.makeText(this, "Operación realizada", Toast.LENGTH_SHORT).show();
-                                    });
-                                } else {
-                                    runOnUiThread(() -> {
-                                        Toast.makeText(this, "Operación realizada: " +
-                                                        (productoActualizado != null ? productoActualizado.getCantidad() + " uds" : ""),
-                                                Toast.LENGTH_SHORT).show();
-                                    });
+                                    actualizarProductosEnEstanteria();
                                 }
+
                             } else {
                                 runOnUiThread(() ->
                                         Toast.makeText(this, "Error en la operación", Toast.LENGTH_SHORT).show()
@@ -293,12 +323,74 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
     }
 
 
-    private void asignarProductoAEstanteria(Producto producto) {
+    private void asignarProductoEscaneadoAEstanteriaEscaneada() {
+        final Producto producto = currentProducto;
+        final Estanteria estanteria = currentEstanteria;
+
+        if (producto == null || estanteria == null) {
+            Toast.makeText(this, "Error: producto o estantería es null", Toast.LENGTH_SHORT).show();
+            estadoAsignarProductoAEstanteriaFalse();
+            return;
+        }
+
         executor.execute(() -> {
-            productoViewModel.assignProductToEstanteria(producto, currentEstanteria);
-            runOnUiThread(() ->
-                    Toast.makeText(this, "Producto asignado a " + currentEstanteria.getNombre(), Toast.LENGTH_SHORT).show()
-            );
+            try {
+                productoViewModel.assignProductToEstanteria(producto, estanteria);
+                if (currentEstanteria != null) {
+                    actualizarProductosEnEstanteria();
+                }
+
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Producto asignado a " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
+                    isAsignarProductoAEstanteria = false;
+                    currentProducto = null;
+                    currentEstanteria = null;
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Error al asignar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    isAsignarProductoAEstanteria = false;
+                });
+            }
         });
+    }
+
+    private void mostrarMensajeCambioEstanteria() {
+        if (isAsignarProductoAEstanteria) {
+            Toast.makeText(this, "Escanea una estantería/producto para asignar.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Asignar estanteria ha cambiado de estado", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void estadoAsignarProductoAEstanteriaTrue() {
+        isAsignarProductoAEstanteria = true;
+        Toast.makeText(this, "Escanea una estantería/producto para asignar.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void estadoAsignarProductoAEstanteriaFalse() {
+        isAsignarProductoAEstanteria = false;
+
+        if (android.os.Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            Toast.makeText(this, "Asignar estanteria cambio de estado", Toast.LENGTH_SHORT).show();
+        } else {
+            runOnUiThread(() ->
+                Toast.makeText(this, "Asignar estanteria cambio de estado", Toast.LENGTH_SHORT).show()
+            );
+        }
+    }
+
+    private void actualizarProductosEnEstanteria() {
+        if (currentEstanteria != null) {
+            executor.execute(() -> {
+                Estanteria estanteriaActualizada = estanteriaViewModel.getEstanteriaConProductosById(currentEstanteria.getId());
+                runOnUiThread(() -> {
+                    if (estanteriaActualizada != null) {
+                        currentEstanteria = estanteriaActualizada;
+                        adapter.setProductos(estanteriaActualizada.getProductos());
+                    }
+                });
+            });
+        }
     }
 }

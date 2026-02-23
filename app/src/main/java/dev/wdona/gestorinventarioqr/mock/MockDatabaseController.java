@@ -65,18 +65,22 @@ public class MockDatabaseController implements MockDatabaseOperations{
             JSONObject jsonProducto = jsonProductos.getJSONObject(String.valueOf(id));
             Long productoId = jsonProducto.getLong("id");
             String nombreProducto = jsonProducto.getString("nombre");
-            double precio = jsonProducto.getDouble("precio");
+            double precio = jsonProducto.optDouble("precio", 0.0);
             int cantidad = jsonProducto.getInt("cantidad");
             Long estanteriaId = jsonProducto.optLong("estanteriaId", -1);
 
-            JSONObject jsonEstanterias = JSONUtils.cargarJSONDesdeArchivo("estanterias.json");
-            if (!jsonEstanterias.has(String.valueOf(estanteriaId))) {
-                System.out.println("Error: No se encontró la estantería con ID " + estanteriaId + " en el archivo.");
-                return null;
+            Estanteria estanteria = null;
+
+            if (estanteriaId != -1) {
+                JSONObject jsonEstanterias = JSONUtils.cargarJSONDesdeArchivo("estanterias.json");
+                if (jsonEstanterias.has(String.valueOf(estanteriaId))) {
+                    JSONObject jsonEstanteria = jsonEstanterias.getJSONObject(String.valueOf(estanteriaId));
+                    String nombreEstanteria = jsonEstanteria.optString("nombre", "Estanteria " + estanteriaId);
+                    estanteria = new Estanteria(estanteriaId, nombreEstanteria);
+                } else {
+                    System.out.println("Advertencia: No se encontró la estantería con ID " + estanteriaId + ", producto sin estantería.");
+                }
             }
-            JSONObject jsonEstanteria = jsonEstanterias.getJSONObject(String.valueOf(estanteriaId));
-            String nombreEstanteria = jsonEstanteria.optString("nombre", "Estanteria " + estanteriaId);
-            Estanteria estanteria = estanteriaId != -1 ? new Estanteria(estanteriaId, nombreEstanteria) : null;
 
             return new Producto(productoId, nombreProducto, precio, cantidad, estanteria);
         } else {
