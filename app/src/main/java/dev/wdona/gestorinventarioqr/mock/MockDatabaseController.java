@@ -122,6 +122,11 @@ public class MockDatabaseController implements MockDatabaseOperations{
         }
     }
 
+    @Override
+    public Estanteria getEstanteriaConProductosById(Long idEstanteria) throws JSONException {
+        return getEstanteriaById(idEstanteria);
+    }
+
     public static void initialize() {
         try {
             if (JSONUtils.crearArchivoSiNoExiste("estanterias.json")) {

@@ -196,7 +196,7 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                             Toast.makeText(this, "Estantería vacía", Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        Toast.makeText(this, "Estantería no encontrada", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Estantería no encontrada: " + estanteriaId, Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (NumberFormatException e) {

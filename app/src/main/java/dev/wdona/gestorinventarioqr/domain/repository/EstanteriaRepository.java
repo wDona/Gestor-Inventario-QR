@@ -8,5 +8,5 @@ import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 public interface EstanteriaRepository {
         Estanteria getEstanteriaById(Long id);
 
-        RelacionEstanteriaProducto getEstanteriaConProductosById(Long idEstanteria);
+        Estanteria getEstanteriaConProductosById(Long idEstanteria);
 }

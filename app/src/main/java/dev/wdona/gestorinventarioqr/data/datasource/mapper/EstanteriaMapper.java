@@ -3,6 +3,7 @@ package dev.wdona.gestorinventarioqr.data.datasource.mapper;
 import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.entity.EstanteriaEntity;
+import dev.wdona.gestorinventarioqr.data.relation.RelacionEstanteriaProducto;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
@@ -28,5 +29,16 @@ public class EstanteriaMapper {
                 entity.getId(),
                 entity.getNombre()
         );
+    }
+
+    public static Estanteria toDomain(RelacionEstanteriaProducto relacion) {
+        if (relacion == null || relacion.estanteria == null) {
+            return null;
+        }
+
+        EstanteriaEntity estanteriaEntity = relacion.estanteria;
+        List<Producto> productos = ProductoMapper.toDomainList(relacion.productos, toDomain(estanteriaEntity));
+
+        return toDomain(estanteriaEntity, productos);
     }
 }

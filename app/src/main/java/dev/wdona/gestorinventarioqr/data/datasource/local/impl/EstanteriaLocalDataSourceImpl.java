@@ -27,8 +27,14 @@ public class EstanteriaLocalDataSourceImpl {
         return estanteria;
     }
 
-    public RelacionEstanteriaProducto getEstanteriaConProductosById(Long idEstanteria) {
-        return dao.getEstanteriaConProductosById(idEstanteria);
+    public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
+        RelacionEstanteriaProducto relacion = dao.getEstanteriaConProductosById(idEstanteria);
+        if (relacion == null || relacion.estanteria == null) {
+            System.out.println("Relacion o estanteria es null para id: " + idEstanteria);
+            return null;
+        }
+        Estanteria estanteria = EstanteriaMapper.toDomain(relacion.estanteria);
+        estanteria.setProductos(ProductoMapper.toDomainList(relacion.productos, estanteria));
+        return estanteria;
     }
-
 }

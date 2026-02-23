@@ -12,4 +12,5 @@ public interface MockDatabaseOperations {
     void addProducto(Producto producto) throws JSONException;
     Producto getProductoById(Long id) throws JSONException;
     Estanteria getEstanteriaById(Long id) throws JSONException;
+    Estanteria getEstanteriaConProductosById(Long idEstanteria) throws JSONException;
 }

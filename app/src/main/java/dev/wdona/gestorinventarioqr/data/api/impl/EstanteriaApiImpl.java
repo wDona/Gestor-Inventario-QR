@@ -17,4 +17,14 @@ public class EstanteriaApiImpl implements EstanteriaApi {
             return null;
         }
     }
+
+    @Override
+    public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
+        try {
+            return mockDatabaseOperations.getEstanteriaConProductosById(idEstanteria);
+        } catch (Exception e) {
+            System.out.println("Error al obtener estanteria con productos por ID: " + e.getMessage());
+            return null;
+        }
+    }
 }

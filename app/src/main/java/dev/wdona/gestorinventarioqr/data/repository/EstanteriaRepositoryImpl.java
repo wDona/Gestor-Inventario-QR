@@ -34,14 +34,17 @@ public class EstanteriaRepositoryImpl implements EstanteriaRepository {
     }
 
     @Override
-    public RelacionEstanteriaProducto getEstanteriaConProductosById(Long idEstanteria) {
+    public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
         try {
-            return local.getEstanteriaConProductosById(idEstanteria);
+            Estanteria estanteria = remote.getEstanteriaConProductosById(idEstanteria);
+            if (estanteria != null) {
+                return estanteria;
+            } else {
+                System.out.println("Estanteria con productos null");
+            }
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
-        return null;
+        return local.getEstanteriaConProductosById(idEstanteria);
     }
-
-
 }

@@ -24,27 +24,10 @@ public class EstanteriaViewModel {
     public LiveData<List<Estanteria>> estanteriaLiveData = _estanteriaLiveData;
 
     public Estanteria getEstanteriaById(Long id) {
-        return repository.getEstanteriaById(id);
+        return repository.getEstanteriaById(id); // esta deberia de traer tambien los productos, pero no estoy seguro
     }
 
     public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
-        RelacionEstanteriaProducto relacion = repository.getEstanteriaConProductosById(idEstanteria);
-
-        // Verificar que relacion no sea null
-        if (relacion == null || relacion.estanteria == null) {
-            System.out.println("Relacion o estanteria es null para id: " + idEstanteria);
-            return null;
-        }
-
-        Estanteria estanteria = getEstanteriaById(idEstanteria);
-
-        if (estanteria != null && Objects.equals(relacion.estanteria.id, estanteria.getId())) {
-            // Paso los productos de relacion a dominio, asignandole esta estanteria
-            List<Producto> productos = ProductoMapper.toDomainList(relacion.productos, estanteria);
-            estanteria.setProductos(productos);
-
-            return estanteria;
-        }
-        return null;
+        return repository.getEstanteriaConProductosById(idEstanteria);
     }
 }
