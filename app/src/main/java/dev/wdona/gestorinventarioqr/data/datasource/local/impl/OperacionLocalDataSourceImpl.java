@@ -1,21 +1,22 @@
 package dev.wdona.gestorinventarioqr.data.datasource.local.impl;
 
-import java.util.Collections;
 import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.datasource.local.OperacionLocalDataSource;
+import dev.wdona.gestorinventarioqr.data.datasource.mapper.OperacionMapper;
+import dev.wdona.gestorinventarioqr.data.db.OperacionDao;
 import dev.wdona.gestorinventarioqr.domain.model.Operacion;
 
 public class OperacionLocalDataSourceImpl implements OperacionLocalDataSource{
-    OperacionLocalDataSource dao;
+    OperacionDao dao;
 
-    public OperacionLocalDataSourceImpl(OperacionLocalDataSource dao) {
+    public OperacionLocalDataSourceImpl(OperacionDao dao) {
         this.dao = dao;
     }
 
     @Override
     public Operacion getOperacionPendienteById(Long id) {
-        return dao.getOperacionPendienteById(id);
+        return OperacionMapper.toDomain(dao.getOperacionPendienteById(id));
     }
 
     @Override
@@ -24,13 +25,8 @@ public class OperacionLocalDataSourceImpl implements OperacionLocalDataSource{
     }
 
     @Override
-    public List<Operacion> getOperacionesEnEstadoPendiente() {
-        return dao.getOperacionesEnEstadoPendiente();
-    }
-
-    @Override
     public void agregarOperacionPendiente(Operacion operacion) {
-        dao.agregarOperacionPendiente(operacion);
+        dao.agregarOperacion(OperacionMapper.toEntity(operacion));
     }
 
     @Override
@@ -39,12 +35,12 @@ public class OperacionLocalDataSourceImpl implements OperacionLocalDataSource{
     }
 
     @Override
-    public List<Operacion> getTodasLasOperaciones() {
-        return dao.getTodasLasOperaciones();
+    public List<Operacion> getAllOperaciones() {
+        return OperacionMapper.toDomain(dao.getAllOperaciones());
     }
 
     @Override
     public List<Operacion> getOperacionesPorEstado(String estado) {
-        return dao.getOperacionesPorEstado(estado);
+        return OperacionMapper.toDomain(dao.getOperacionesPorEstado(estado));
     }
 }

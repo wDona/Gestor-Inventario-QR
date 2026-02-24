@@ -8,9 +8,9 @@ public interface OperacionLocalDataSource {
     void agregarOperacionPendiente(Operacion operacion);
     Operacion getOperacionPendienteById(Long id);
     void actualizarEstadoById(Long id, String nuevoEstado);
-    List<Operacion> getOperacionesEnEstadoPendiente();
     Long getUltimoIdOperacionPendiente();
-    List<Operacion> getTodasLasOperaciones();
+    List<Operacion> getAllOperaciones();
     List<Operacion> getOperacionesPorEstado(String estado);
+
 
 }

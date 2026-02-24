@@ -1,10 +1,12 @@
 package dev.wdona.gestorinventarioqr.data.datasource.local.impl;
 
+import java.util.Collections;
+import java.util.List;
+
 import dev.wdona.gestorinventarioqr.data.datasource.local.ProductoLocalDataSource;
 import dev.wdona.gestorinventarioqr.data.datasource.mapper.EstanteriaMapper;
 import dev.wdona.gestorinventarioqr.data.datasource.mapper.ProductoMapper;
 import dev.wdona.gestorinventarioqr.data.db.EstanteriaDao;
-import dev.wdona.gestorinventarioqr.data.db.OperacionDao;
 import dev.wdona.gestorinventarioqr.data.db.ProductoDao;
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
@@ -70,5 +72,31 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
         }
     }
 
+    @Override
+    public List<Producto> getAllProductos() {
+        try {
+            List<ProductoEntity> entities = dao.getAllProductos();
+            if (entities == null || entities.isEmpty()) {
+                System.out.println("No se encontraron productos en la base de datos local.");
+                return Collections.emptyList();
+            }
 
+            return ProductoMapper.toDomainList(entities, estanteriaDao);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public void bajarCambios(Producto ... productos) {
+        for (Producto producto : productos) {
+            try {
+                ProductoEntity entity = ProductoMapper.toEntity(producto);
+                dao.updateProducto(entity);
+            } catch (Exception e) {
+                System.out.println("Error al bajar cambios para producto ID " + producto.getId() + ": " + e.getMessage());
+            }
+        }
+    }
 }

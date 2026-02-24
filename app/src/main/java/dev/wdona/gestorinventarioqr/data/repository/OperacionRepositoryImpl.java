@@ -13,14 +13,12 @@ import dev.wdona.gestorinventarioqr.domain.model.Operacion;
 
 public class OperacionRepositoryImpl implements OperacionRepository {
     OperacionLocalDataSourceImpl operacionLocal;
-    EstanteriaRemoteDataSourceImpl estanteriaRemote;
     ProductoRemoteDataSourceImpl productoRemote;
     EstanteriaLocalDataSourceImpl estanteriaLocal;
     ProductoLocalDataSourceImpl productoLocal;
 
-    public OperacionRepositoryImpl(OperacionLocalDataSourceImpl operacionLocal, EstanteriaRemoteDataSourceImpl estanteriaRemote, ProductoRemoteDataSourceImpl productoRemote, EstanteriaLocalDataSourceImpl estanteriaLocal, ProductoLocalDataSourceImpl productoLocal) {
+    public OperacionRepositoryImpl(OperacionLocalDataSourceImpl operacionLocal, ProductoRemoteDataSourceImpl productoRemote, EstanteriaLocalDataSourceImpl estanteriaLocal, ProductoLocalDataSourceImpl productoLocal) {
         this.operacionLocal = operacionLocal;
-        this.estanteriaRemote = estanteriaRemote;
         this.productoRemote = productoRemote;
         this.estanteriaLocal = estanteriaLocal;
         this.productoLocal = productoLocal;
@@ -47,8 +45,8 @@ public class OperacionRepositoryImpl implements OperacionRepository {
     }
 
     @Override
-    public List<Operacion> getTodasLasOperaciones() {
-        return operacionLocal.getTodasLasOperaciones();
+    public List<Operacion> getAllOperaciones() {
+        return operacionLocal.getAllOperaciones();
     }
 
     @Override
@@ -56,7 +54,8 @@ public class OperacionRepositoryImpl implements OperacionRepository {
         return operacionLocal.getOperacionesPorEstado(estado.getValor());
     }
 
-    public boolean reintentarEnvio(Operacion operacion) {
+    @Override
+    public boolean reintentarOperacion(Operacion operacion) {
         try {
             String estado = operacion.getEstado();
             String tipoOperacion = operacion.getTipoOperacion();
@@ -85,6 +84,32 @@ public class OperacionRepositoryImpl implements OperacionRepository {
 
         actualizarEstadoById(operacion.getId(), EstadoOperacion.ENVIADA);
         return true;
+
+    }
+
+    @Override
+    public boolean reintentarAllOperaciones() {
+        boolean allSuccess = true;
+        List<Operacion> operacionesPendientes = getOperacionesPorEstado(EstadoOperacion.PENDIENTE);
+        List<Operacion> operacionesFallidas = getOperacionesPorEstado(EstadoOperacion.FALLIDA);
+
+        for (Operacion operacion : operacionesPendientes) {
+            boolean success = reintentarOperacion(operacion);
+            System.out.println("Reintento de operación ID " + operacion.getId() + ": " + (success ? "Éxito" : "Fallo"));
+            if (!success) {
+                allSuccess = false;
+            }
+        }
+
+        for (Operacion operacion : operacionesFallidas) {
+            boolean success = reintentarOperacion(operacion);
+            System.out.println("Reintento de operación fallida ID " + operacion.getId() + ": " + (success ? "Éxito" : "Fallo"));
+            if (!success) {
+                allSuccess = false;
+            }
+        }
+
+        return allSuccess;
     }
 
 

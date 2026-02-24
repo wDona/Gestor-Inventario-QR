@@ -1,5 +1,6 @@
 package dev.wdona.gestorinventarioqr.data.datasource.remote.impl;
 
+import java.util.Collections;
 import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.api.ProductoApi;
@@ -51,7 +52,17 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     }
 
     @Override
-    public void sincronizarPendientes(List<Producto> productosPendientes) {
+    public List<Producto> getAllProductos() {
+        try {
+            return api.getAllProductos();
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public void subirCambios(List<Producto> productosPendientes) {
         // TODO
     }
 }

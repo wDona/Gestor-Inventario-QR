@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:name=".presentation.ui.App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -24,7 +25,7 @@
         android:theme="@style/Theme.GestorInventarioQR">
 
             <activity
-                android:name=".presentation.ui.MainActivity"
+                android:name=".presentation.ui.MainScanActivity"
                 android:exported="true"
                 android:label="Gestor de Inventario QR">
                 <intent-filter>
@@ -34,7 +35,7 @@
 
             </activity>
             <activity
-                android:name=".presentation.ui.ScanActivity"
+                android:name=".presentation.ui.OperacionesActivity"
                 android:exported="false" />
     </application>
 

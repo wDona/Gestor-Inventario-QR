@@ -39,7 +39,9 @@ public class ScannerManager {
                             });
                         }
                     });
-                }new Handler(Looper.getMainLooper()).post(() -> {
+                }
+
+                new Handler(Looper.getMainLooper()).post(() -> {
                     if (callback != null) {
                         callback.onInitialized(result);
                     }

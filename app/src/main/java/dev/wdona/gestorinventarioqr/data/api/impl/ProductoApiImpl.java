@@ -1,5 +1,8 @@
 package dev.wdona.gestorinventarioqr.data.api.impl;
 
+import java.util.Collections;
+import java.util.List;
+
 import dev.wdona.gestorinventarioqr.data.api.ProductoApi;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
@@ -62,6 +65,32 @@ public class ProductoApiImpl implements ProductoApi {
         } catch (Exception e) {
             System.out.println("Error al obtener producto por ID: " + e.getMessage());
             return null;
+        }
+    }
+
+    @Override
+    public void subirCambios(Producto ... productos) {
+        try {
+            for (Producto p : productos) {
+                if (p == null) {
+                    System.out.println("Error, producto nulo en subirCambios");
+                    return;
+                }
+            }
+
+            mockDatabaseOperations.subirCambios(productos);
+        } catch (Exception e) {
+            System.out.println("Error al subir cambios del producto: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Producto> getAllProductos() {
+        try {
+            return mockDatabaseOperations.getAllProductos();
+        } catch (Exception e) {
+            System.out.println("Error al obtener todos los productos: " + e.getMessage());
+            return Collections.emptyList();
         }
     }
 }

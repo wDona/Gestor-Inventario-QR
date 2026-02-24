@@ -3,6 +3,7 @@ package dev.wdona.gestorinventarioqr.data.datasource.mapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.wdona.gestorinventarioqr.data.db.EstanteriaDao;
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
@@ -32,15 +33,36 @@ public class ProductoMapper {
         return productos;
     }
 
+    /**
+     * Convierte una lista de ProductoEntity a Producto obteniendo la estantería de cada uno
+     */
+    public static List<Producto> toDomainList(List<ProductoEntity> entities, EstanteriaDao estanteriaDao) {
+        if (entities == null) {
+            return new ArrayList<>();
+        }
+        List<Producto> productos = new ArrayList<>();
+        for (ProductoEntity entity : entities) {
+            Estanteria estanteria = null;
+            if (entity.getFK_estanteriaId() != null) {
+                estanteria = EstanteriaMapper.toDomain(estanteriaDao.getEstanteriaById(entity.getFK_estanteriaId()));
+            }
+            productos.add(toDomain(entity, estanteria));
+        }
+        return productos;
+    }
+
     public static ProductoEntity toEntity(Producto producto) {
         if (producto == null) {
             return null;
         }
         ProductoEntity entity = new ProductoEntity();
+        entity.setId(producto.getId());
         entity.setNombre(producto.getNombre());
         entity.setPrecio(producto.getPrecio());
         entity.setCantidad(producto.getCantidad());
-        entity.setFK_estanteriaId(producto.getEstanteria().getId());
+        if (producto.getEstanteria() != null) {
+            entity.setFK_estanteriaId(producto.getEstanteria().getId());
+        }
         return entity;
     }
 }

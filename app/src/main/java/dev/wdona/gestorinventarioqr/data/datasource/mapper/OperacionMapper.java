@@ -1,5 +1,8 @@
 package dev.wdona.gestorinventarioqr.data.datasource.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import dev.wdona.gestorinventarioqr.data.entity.OperacionEntity;
 import dev.wdona.gestorinventarioqr.domain.model.Operacion;
 
@@ -27,5 +30,15 @@ public class OperacionMapper {
                 entity.getCantidad(),
                 entity.getEstado()
         );
+    }
+
+    public static List<Operacion> toDomain(List<OperacionEntity> entities) {
+        ArrayList<Operacion> list = new ArrayList<>();
+
+        for (OperacionEntity entity : entities) {
+            list.add(toDomain(entity));
+        }
+
+        return list;
     }
 }

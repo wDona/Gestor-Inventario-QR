@@ -1,5 +1,6 @@
 package dev.wdona.gestorinventarioqr.domain.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Estanteria {
@@ -10,12 +11,13 @@ public class Estanteria {
     public Estanteria(Long id, String nombre) {
         this.id = id;
         this.nombre = nombre;
+        this.productos = new ArrayList<>();  // Inicializar lista vacía
     }
 
     public Estanteria(Long id, String nombre, List<Producto> productos) {
         this.id = id;
         this.nombre = nombre;
-        this.productos = productos;
+        this.productos = productos != null ? productos : new ArrayList<>();
     }
 
     public Long getId() {
@@ -39,12 +41,13 @@ public class Estanteria {
     }
 
     public void setProductos(List<Producto> productos) {
-        this.productos = productos;
+        this.productos = productos != null ? productos : new ArrayList<>();
     }
 
     public void addProducto(Producto producto) {
-        if (this.productos != null) {
-            this.productos.add(producto);
+        if (this.productos == null) {
+            this.productos = new ArrayList<>();
         }
+        this.productos.add(producto);
     }
 }

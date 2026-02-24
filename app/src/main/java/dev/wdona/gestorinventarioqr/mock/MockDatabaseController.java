@@ -127,17 +127,82 @@ public class MockDatabaseController implements MockDatabaseOperations{
         return getEstanteriaById(idEstanteria);
     }
 
+    @Override
+    public void subirCambios(Producto... productos) throws JSONException {
+        if (productos == null || productos.length == 0) {
+            return;
+        }
+
+        for (Producto producto : productos) {
+            if (producto == null || producto.getId() == null) {
+                continue;
+            }
+
+            // Crear JSONObject con todos los campos del producto
+            JSONObject jsonProducto = new JSONObject();
+            jsonProducto.put("id", producto.getId());
+            jsonProducto.put("nombre", producto.getNombre());
+            jsonProducto.put("precio", producto.getPrecio());
+            jsonProducto.put("cantidad", producto.getCantidad());
+            if (producto.getEstanteria() != null) {
+                jsonProducto.put("estanteriaId", producto.getEstanteria().getId());
+            } else {
+                jsonProducto.put("estanteriaId", JSONObject.NULL);
+            }
+
+            // Actualizar en el archivo JSON (solo si existe)
+            JSONUtils.modificarJSONObjectEnArchivo(jsonProducto, "productos.json");
+
+            android.util.Log.d("MockDB", "Producto actualizado en JSON: " + producto.getNombre());
+        }
+    }
+
+
     public static void initialize() {
         try {
-            if (JSONUtils.crearArchivoSiNoExiste("estanterias.json")) {
+            android.util.Log.d("MockDB", "Inicializando MockDatabaseController...");
+
+            // Siempre crear archivos si no existen
+            JSONUtils.crearArchivoSiNoExiste("estanterias.json");
+            JSONUtils.crearArchivoSiNoExiste("productos.json");
+
+            // Verificar y poblar estanterias
+            boolean necesitaPoblarEstanterias = false;
+            try {
+                org.json.JSONObject estanteriasJson = JSONUtils.cargarJSONDesdeArchivo("estanterias.json");
+                necesitaPoblarEstanterias = (estanteriasJson.length() == 0 || !estanteriasJson.has("1"));
+                android.util.Log.d("MockDB", "estanterias.json tiene " + estanteriasJson.length() + " elementos");
+            } catch (Exception e) {
+                necesitaPoblarEstanterias = true;
+                android.util.Log.d("MockDB", "Error leyendo estanterias.json: " + e.getMessage());
+            }
+
+            if (necesitaPoblarEstanterias) {
+                android.util.Log.d("MockDB", "Poblando estanterias.json...");
                 JSONUtils.mockearEstanteriasBase();
             }
-            if (JSONUtils.crearArchivoSiNoExiste("productos.json")) {
+
+            // Verificar y poblar productos
+            boolean necesitaPoblarProductos = false;
+            try {
+                org.json.JSONObject productosJson = JSONUtils.cargarJSONDesdeArchivo("productos.json");
+                necesitaPoblarProductos = (productosJson.length() == 0 || !productosJson.has("1"));
+                android.util.Log.d("MockDB", "productos.json tiene " + productosJson.length() + " elementos");
+            } catch (Exception e) {
+                necesitaPoblarProductos = true;
+                android.util.Log.d("MockDB", "Error leyendo productos.json: " + e.getMessage());
+            }
+
+            if (necesitaPoblarProductos) {
+                android.util.Log.d("MockDB", "Poblando productos.json...");
                 JSONUtils.mockearProductosBase();
             }
+
+            android.util.Log.d("MockDB", "MockDatabaseController inicializado correctamente");
         } catch (Exception e) {
-            System.out.println("Error al inicializar archivos JSON: " + e.getMessage());
+            android.util.Log.e("MockDB", "Error al inicializar archivos JSON: " + e.getMessage(), e);
         }
+
     }
 
 }

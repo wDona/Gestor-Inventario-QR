@@ -4,6 +4,9 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
+
+import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.entity.EstanteriaEntity;
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
@@ -19,11 +22,13 @@ public interface ProductoDao {
     void removeUndsProduct(Long productoId, int cantidad);
     @Query("UPDATE Producto SET FK_estanteriaId = :estanteriaId WHERE id = :productoId")
     void assignProductToEstanteria(Long productoId, Long estanteriaId);
-
+    @Update
+    void updateProducto(ProductoEntity productoEntity);
     @Query("SELECT * FROM Producto WHERE id = :id")
     ProductoEntity getProductoById(Long id);
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertProducto(ProductoEntity productoEntity);
+    @Query("SELECT * FROM Producto")
+    List<ProductoEntity> getAllProductos();
 
 }

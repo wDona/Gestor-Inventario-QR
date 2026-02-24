@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Indicador de estado (barra lateral) -->
+        <View
+            android:id="@+id/estadoIndicator"
+            android:layout_width="6dp"
+            android:layout_height="match_parent"
+            android:background="#FFA500" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- Tipo de operación -->
+            <TextView
+                android:id="@+id/tvTipoOperacion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tipo operación"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Producto ID -->
+            <TextView
+                android:id="@+id/tvProductoId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Producto ID: 1"
+                android:textSize="14sp" />
+
+            <!-- Estantería ID -->
+            <TextView
+                android:id="@+id/tvEstanteriaId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estantería ID: 1"
+                android:textSize="14sp" />
+
+            <!-- Cantidad -->
+            <TextView
+                android:id="@+id/tvCantidad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cantidad: 10"
+                android:textSize="14sp" />
+
+            <!-- Timestamp -->
+            <TextView
+                android:id="@+id/tvTimestamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="01/01/2026 12:00:00"
+                android:textColor="#757575"
+                android:textSize="12sp" />
+
+            <!-- Fila inferior: Estado + Botón Reintentar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Estado -->
+                <TextView
+                    android:id="@+id/tvEstado"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="PENDIENTE"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <!-- Botón Reintentar -->
+                <Button
+                    android:id="@+id/btnReintentar"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Reintentar"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+

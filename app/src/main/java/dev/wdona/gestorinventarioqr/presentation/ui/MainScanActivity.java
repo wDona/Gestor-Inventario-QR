@@ -1,6 +1,7 @@
 package dev.wdona.gestorinventarioqr.presentation.ui;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -16,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.wdona.gestorinventarioqr.R;
 import dev.wdona.gestorinventarioqr.data.api.impl.EstanteriaApiImpl;
@@ -32,11 +32,12 @@ import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 import dev.wdona.gestorinventarioqr.presentation.ui.scan.ProductoScanAdapter;
 import dev.wdona.gestorinventarioqr.presentation.viewmodel.EstanteriaViewModel;
+import dev.wdona.gestorinventarioqr.presentation.viewmodel.OperacionViewModel;
 import dev.wdona.gestorinventarioqr.presentation.viewmodel.ProductoViewModel;
 import dev.wdona.gestorinventarioqr.scanner.QRIdentifier;
 import dev.wdona.gestorinventarioqr.scanner.ScannerManager;
 
-public class ScanActivity extends AppCompatActivity implements ScannerManager.ScanCallback {
+public class MainScanActivity extends AppCompatActivity implements ScannerManager.ScanCallback {
 
     private ScannerManager scannerManager;
     private TextView tvStatus;
@@ -44,12 +45,12 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
     private TextView tvEstanteriaInfo;
     private Button btnScan;
     private Button btnStop;
+    private Button btnVerOperaciones;
     private RecyclerView rvProductos;
     private ProgressDialog progressDialog;
-
     private EstanteriaViewModel estanteriaViewModel;
     private ProductoViewModel productoViewModel;
-
+    private OperacionViewModel operacionViewModel;
     private Estanteria currentEstanteria;
     private Producto currentProducto;
     private boolean isAsignarProductoAEstanteria = false;
@@ -62,25 +63,47 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
         setContentView(R.layout.activity_scan);
 
         executor = Executors.newSingleThreadExecutor();
-        initViewModels();
+
+        try {
+            inicializarViewModels();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error inicializando: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            // Continuar de todas formas para ver la UI
+        }
+
         initViews();
         initScanner();
     }
 
-    private void initViewModels() {
-        AppDatabase db = AppDatabase.getDatabase(getApplicationContext());
+    private void inicializarViewModels() {
+        App app = App.getInstance();
 
-        EstanteriaLocalDataSourceImpl estanteriaLocal = new EstanteriaLocalDataSourceImpl(db.estanteriaDao());
-        ProductoLocalDataSourceImpl productoLocal = new ProductoLocalDataSourceImpl(db.productoDao(), db.estanteriaDao());
+        if (app != null && app.estanteriaViewModel != null && app.productoViewModel != null) {
+            this.estanteriaViewModel = app.estanteriaViewModel;
+            this.productoViewModel = app.productoViewModel;
+            this.operacionViewModel = app.operacionViewModel;
+        } else {
+            // Inicializar localmente si App falló
+            android.util.Log.w("MainScanActivity", "App.getInstance() falló, inicializando localmente");
 
-        EstanteriaRemoteDataSourceImpl estanteriaRemote = new EstanteriaRemoteDataSourceImpl(new EstanteriaApiImpl());
-        ProductoRemoteDataSourceImpl productoRemote = new ProductoRemoteDataSourceImpl(new ProductoApiImpl());
+            AppDatabase appDatabase = AppDatabase.getDatabase(getApplicationContext());
 
-        EstanteriaRepositoryImpl estanteriaRepo = new EstanteriaRepositoryImpl(estanteriaRemote, estanteriaLocal);
-        ProductoRepositoryImpl productoRepo = new ProductoRepositoryImpl(productoRemote, productoLocal);
+            EstanteriaLocalDataSourceImpl estanteriaLocalDataSource = new EstanteriaLocalDataSourceImpl(appDatabase.estanteriaDao());
+            ProductoLocalDataSourceImpl productoLocalDataSource = new ProductoLocalDataSourceImpl(appDatabase.productoDao(), appDatabase.estanteriaDao());
 
-        estanteriaViewModel = new EstanteriaViewModel(estanteriaRepo);
-        productoViewModel = new ProductoViewModel(productoRepo);
+            EstanteriaApiImpl estanteriaApi = new EstanteriaApiImpl();
+            ProductoApiImpl productoApi = new ProductoApiImpl();
+
+            EstanteriaRemoteDataSourceImpl estanteriaRemoteDataSource = new EstanteriaRemoteDataSourceImpl(estanteriaApi);
+            ProductoRemoteDataSourceImpl productoRemoteDataSource = new ProductoRemoteDataSourceImpl(productoApi);
+
+            EstanteriaRepositoryImpl estanteriaRepository = new EstanteriaRepositoryImpl(estanteriaRemoteDataSource, estanteriaLocalDataSource);
+            ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource);
+
+            this.estanteriaViewModel = new EstanteriaViewModel(estanteriaRepository);
+            this.productoViewModel = new ProductoViewModel(productoRepository);
+        }
     }
 
     private void initViews() {
@@ -90,6 +113,7 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
         btnScan = findViewById(R.id.btnScan);
         btnStop = findViewById(R.id.btnStop);
         rvProductos = findViewById(R.id.rvProductos);
+        btnVerOperaciones = findViewById(R.id.btnVerOperaciones);
 
         adapter = new ProductoScanAdapter(this::showProductoOptionsDialog);
         rvProductos.setLayoutManager(new LinearLayoutManager(this));
@@ -98,18 +122,33 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
         btnScan.setOnClickListener(v -> startScanning());
         btnStop.setOnClickListener(v -> stopScanning());
 
+        btnVerOperaciones.setOnClickListener(v -> {
+            Intent intent = new Intent(this, OperacionesActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        });
+
         btnScan.setEnabled(false);
         btnStop.setEnabled(false);
     }
 
     private void initScanner() {
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Inicializando escáner...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+        try {
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Inicializando escáner...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
 
-        scannerManager = new ScannerManager();
-        scannerManager.init(this, this);
+            scannerManager = new ScannerManager();
+            scannerManager.init(this, this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (progressDialog != null && progressDialog.isShowing()) {
+                progressDialog.dismiss();
+            }
+            tvStatus.setText("Error al inicializar escáner");
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void startScanning() {
@@ -140,7 +179,14 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
 
     @Override
     public void onInitialized(boolean success) {
-        progressDialog.dismiss();
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+
         if (success) {
             tvStatus.setText("Escáner listo");
             btnScan.setEnabled(true);
@@ -170,7 +216,17 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
         executor.execute(() -> {
             try {
                 Long estanteriaId = Long.parseLong(id);
+                android.util.Log.d("MainScanActivity", "Buscando estanteria con ID: " + estanteriaId);
+
                 Estanteria estanteria = estanteriaViewModel.getEstanteriaConProductosById(estanteriaId);
+
+                android.util.Log.d("MainScanActivity", "Estanteria encontrada: " + (estanteria != null ? estanteria.getNombre() : "null"));
+                if (estanteria != null && estanteria.getProductos() != null) {
+                    android.util.Log.d("MainScanActivity", "Productos en estanteria: " + estanteria.getProductos().size());
+                    for (Producto p : estanteria.getProductos()) {
+                        android.util.Log.d("MainScanActivity", "  - Producto: " + p.getNombre() + " (ID: " + p.getId() + ")");
+                    }
+                }
 
                 runOnUiThread(() -> {
                     if (estanteria != null) {
@@ -182,6 +238,7 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                                 estadoAsignarProductoAEstanteriaFalse();
                                 return;
                             }
+
                             mostrarConfirmacionDialog(this::asignarProductoEscaneadoAEstanteriaEscaneada, "Seguro que quieres asignar " + currentProducto.getNombre());
                             Toast.makeText(this, "Estantería escaneada para asignar producto: " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
                         }
@@ -417,5 +474,23 @@ public class ScanActivity extends AppCompatActivity implements ScannerManager.Sc
                 .show();
     }
 
+    @Override
+    protected void onDestroy() {
+        // Cerrar el ProgressDialog para evitar WindowLeaked
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
 
+        // Liberar el scanner
+        if (scannerManager != null) {
+            scannerManager.release();
+        }
+
+        // Shutdown del executor
+        if (executor != null) {
+            executor.shutdown();
+        }
+
+        super.onDestroy();
+    }
 }

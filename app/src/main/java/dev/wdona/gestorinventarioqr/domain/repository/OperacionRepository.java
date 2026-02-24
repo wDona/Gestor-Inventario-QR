@@ -11,6 +11,8 @@ public interface OperacionRepository {
     Operacion getOperacionPendienteById(Long id);
     void actualizarEstadoById(Long id, EstadoOperacion nuevoEstado);
     Long getUltimoIdOperacionPendiente();
-    List<Operacion> getTodasLasOperaciones();
+    List<Operacion> getAllOperaciones();
     List<Operacion> getOperacionesPorEstado(EstadoOperacion estado);
+    boolean reintentarOperacion(Operacion operacion);
+    boolean reintentarAllOperaciones();
 }
