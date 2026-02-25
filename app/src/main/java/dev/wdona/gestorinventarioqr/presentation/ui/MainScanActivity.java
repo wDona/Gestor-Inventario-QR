@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,14 +23,17 @@ import dev.wdona.gestorinventarioqr.R;
 import dev.wdona.gestorinventarioqr.data.api.impl.EstanteriaApiImpl;
 import dev.wdona.gestorinventarioqr.data.api.impl.ProductoApiImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.EstanteriaLocalDataSourceImpl;
+import dev.wdona.gestorinventarioqr.data.datasource.local.impl.OperacionLocalDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.ProductoLocalDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.remote.impl.EstanteriaRemoteDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.remote.impl.ProductoRemoteDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.db.AppDatabase;
 import dev.wdona.gestorinventarioqr.data.repository.EstanteriaRepositoryImpl;
+import dev.wdona.gestorinventarioqr.data.repository.OperacionRepositoryImpl;
 import dev.wdona.gestorinventarioqr.data.repository.ProductoRepositoryImpl;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
+import dev.wdona.gestorinventarioqr.mock.MockConfig;
 import dev.wdona.gestorinventarioqr.presentation.ui.scan.ProductoScanAdapter;
 import dev.wdona.gestorinventarioqr.presentation.viewmodel.EstanteriaViewModel;
 import dev.wdona.gestorinventarioqr.presentation.viewmodel.OperacionViewModel;
@@ -46,6 +50,9 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     private Button btnScan;
     private Button btnStop;
     private Button btnVerOperaciones;
+    private Button btnMoverProductoAqui;
+    private Button btnToggleOffline;
+    private View llBotonesEstanteria;
     private RecyclerView rvProductos;
     private ProgressDialog progressDialog;
     private EstanteriaViewModel estanteriaViewModel;
@@ -54,6 +61,8 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     private Estanteria currentEstanteria;
     private Producto currentProducto;
     private boolean isAsignarProductoAEstanteria = false;
+    private boolean isMoverProductoAqui = false;  // Nuevo modo: mover producto a estantería actual
+    private boolean syncPendiente = false; // Para controlar sincronización al volver a online
     private ProductoScanAdapter adapter;
     private ExecutorService executor;
 
@@ -74,6 +83,8 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
 
         initViews();
         initScanner();
+
+        observarProductos();
     }
 
     private void inicializarViewModels() {
@@ -99,7 +110,13 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
             ProductoRemoteDataSourceImpl productoRemoteDataSource = new ProductoRemoteDataSourceImpl(productoApi);
 
             EstanteriaRepositoryImpl estanteriaRepository = new EstanteriaRepositoryImpl(estanteriaRemoteDataSource, estanteriaLocalDataSource);
-            ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource);
+            OperacionRepositoryImpl operacionRepository = new OperacionRepositoryImpl(
+                    new OperacionLocalDataSourceImpl(appDatabase.operacionDao()),
+                    productoRemoteDataSource,
+                    estanteriaLocalDataSource,
+                    productoLocalDataSource
+            );
+            ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource, operacionRepository);
 
             this.estanteriaViewModel = new EstanteriaViewModel(estanteriaRepository);
             this.productoViewModel = new ProductoViewModel(productoRepository);
@@ -114,6 +131,9 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
         btnStop = findViewById(R.id.btnStop);
         rvProductos = findViewById(R.id.rvProductos);
         btnVerOperaciones = findViewById(R.id.btnVerOperaciones);
+        btnMoverProductoAqui = findViewById(R.id.btnMoverProductoAqui);
+        llBotonesEstanteria = findViewById(R.id.llBotonesEstanteria);
+        btnToggleOffline = findViewById(R.id.btnToggleOffline);
 
         adapter = new ProductoScanAdapter(this::showProductoOptionsDialog);
         rvProductos.setLayoutManager(new LinearLayoutManager(this));
@@ -128,8 +148,56 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
             startActivity(intent);
         });
 
+        // Botón mover producto aquí
+        btnMoverProductoAqui.setOnClickListener(v -> iniciarModoMoverProductoAqui());
+
+        // Botón toggle offline/online
+        btnToggleOffline.setOnClickListener(v -> {
+            toggleOfflineMode();
+        });
+
+        actualizarBotonOffline();
+
         btnScan.setEnabled(false);
         btnStop.setEnabled(false);
+    }
+
+    private void toggleOfflineMode() {
+        boolean isOffline = MockConfig.toggleOffline();
+        actualizarBotonOffline();
+        String mensaje = isOffline ? "Modo OFFLINE activado" : "Modo ONLINE activado";
+        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
+    }
+
+    private void actualizarBotonOffline() {
+        if (MockConfig.isOffline()) {
+            btnToggleOffline.setText("Modo: OFFLINE");
+            btnToggleOffline.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFF44336)); // Rojo
+        } else {
+            btnToggleOffline.setText("Modo: ONLINE");
+            btnToggleOffline.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF4CAF50)); // Verde
+
+            syncPendiente = true;
+        }
+    }
+
+    private void sincronizar() {
+        List<Producto> productos = productoViewModel.productosLiveData.getValue();
+        if (productos != null && !productos.isEmpty()) {
+            android.util.Log.d("MainScanActivity", "Sincronización iniciada con " + productos.size() + " productos.");
+            productoViewModel.sincronizar(productoViewModel.productosLiveData.getValue().toArray(new Producto[0]));
+        } else {
+            android.util.Log.d("MainScanActivity", "No hay productos para sincronizar al cambiar a ONLINE.");
+        }
+    }
+
+    private void observarProductos() {
+        productoViewModel.productosLiveData.observe(this, productos -> {
+            if (syncPendiente && productos != null && !productos.isEmpty()) {
+                sincronizar();
+                syncPendiente = false;
+            }
+        });
     }
 
     private void initScanner() {
@@ -246,8 +314,17 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                         tvEstanteriaInfo.setText("Estantería: " + estanteria.getNombre());
                         tvEstanteriaInfo.setVisibility(View.VISIBLE);
 
+                        // Mostrar botones de estantería
+                        llBotonesEstanteria.setVisibility(View.VISIBLE);
+
                         List<Producto> productos = estanteria.getProductos();
+                        adapter.setProductos(new ArrayList<>());
+                        adapter.notifyDataSetChanged();
                         adapter.setProductos(productos);
+
+                        if (adapter.getItemCount() == 0) { // Usar getItemCount() sigue siendo la mejor práctica
+                            Toast.makeText(this, "Estantería vacía", Toast.LENGTH_SHORT).show();
+                        }
 
                         if (productos == null || productos.isEmpty()) {
                             Toast.makeText(this, "Estantería vacía", Toast.LENGTH_SHORT).show();
@@ -273,7 +350,22 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                 runOnUiThread(() -> {
                     if (producto != null) {
                         currentProducto = producto;
-                        if (isAsignarProductoAEstanteria) {
+
+                        // Modo: mover producto a estantería actual
+                        if (isMoverProductoAqui) {
+                            if (currentEstanteria == null) {
+                                Toast.makeText(this, "No hay estantería seleccionada. Escanea una estantería primero.", Toast.LENGTH_SHORT).show();
+                                cancelarModoMoverProductoAqui();
+                                return;
+                            }
+                            Toast.makeText(this, "Producto escaneado: " + producto.getNombre(), Toast.LENGTH_SHORT).show();
+                            mostrarConfirmacionDialog(
+                                    this::moverProductoAEstanteriaActual,
+                                    "¿Mover " + producto.getNombre() + " a " + currentEstanteria.getNombre() + "?"
+                            );
+                        }
+                        // Modo: asignar producto a estantería (escanear estantería después)
+                        else if (isAsignarProductoAEstanteria) {
                             if (currentEstanteria == null) {
                                 Toast.makeText(this, "No hay estantería escaneada para asignar el producto. Realiza de nuevo la operacion", Toast.LENGTH_SHORT).show();
                                 estadoAsignarProductoAEstanteriaFalse();
@@ -439,6 +531,61 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                 Toast.makeText(this, "Asignar estanteria cambio de estado", Toast.LENGTH_SHORT).show()
             );
         }
+    }
+
+    // ===== MÉTODOS PARA MODO "MOVER PRODUCTO AQUÍ" =====
+
+    private void iniciarModoMoverProductoAqui() {
+        if (currentEstanteria == null) {
+            Toast.makeText(this, "Primero escanea una estantería", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        isMoverProductoAqui = true;
+        tvStatus.setText("Escanea el producto a mover a " + currentEstanteria.getNombre());
+        Toast.makeText(this, "Escanea el producto que quieres mover aquí", Toast.LENGTH_SHORT).show();
+
+        // Iniciar escaneo automáticamente
+        startScanning();
+    }
+
+    private void cancelarModoMoverProductoAqui() {
+        isMoverProductoAqui = false;
+        tvStatus.setText("Listo para escanear");
+        currentProducto = null;
+    }
+
+    private void moverProductoAEstanteriaActual() {
+        final Producto producto = currentProducto;
+        final Estanteria estanteria = currentEstanteria;
+
+        if (producto == null || estanteria == null) {
+            Toast.makeText(this, "Error: producto o estantería es null", Toast.LENGTH_SHORT).show();
+            cancelarModoMoverProductoAqui();
+            return;
+        }
+
+        executor.execute(() -> {
+            try {
+                productoViewModel.assignProductToEstanteria(producto, estanteria);
+
+                runOnUiThread(() -> {
+                    Toast.makeText(this, producto.getNombre() + " movido a " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
+                    isMoverProductoAqui = false;
+                    currentProducto = null;
+                    tvStatus.setText("Listo para escanear");
+                });
+
+                // Actualizar lista de productos de la estantería
+                actualizarProductosEnEstanteria();
+
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Error al mover producto: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    cancelarModoMoverProductoAqui();
+                });
+            }
+        });
     }
 
     private void actualizarProductosEnEstanteria() {

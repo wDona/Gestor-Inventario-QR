@@ -41,4 +41,15 @@ public class EstanteriaMapper {
 
         return toDomain(estanteriaEntity, productos);
     }
+
+    public static List<Estanteria> toDomain(List<EstanteriaEntity> estanteriaEntities) {
+        if (estanteriaEntities == null) {
+            return null;
+        }
+        List<Estanteria> estanterias = new java.util.ArrayList<>();
+        for (EstanteriaEntity entity : estanteriaEntities) {
+            estanterias.add(toDomain(entity));
+        }
+        return estanterias;
+    }
 }

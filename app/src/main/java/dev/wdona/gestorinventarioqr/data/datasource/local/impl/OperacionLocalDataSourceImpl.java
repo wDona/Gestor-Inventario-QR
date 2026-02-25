@@ -43,4 +43,9 @@ public class OperacionLocalDataSourceImpl implements OperacionLocalDataSource{
     public List<Operacion> getOperacionesPorEstado(String estado) {
         return OperacionMapper.toDomain(dao.getOperacionesPorEstado(estado));
     }
+
+    @Override
+    public void eliminarOperacionesPorEstado(String estado) {
+        dao.eliminarOperacionesPorEstado(estado);
+    }
 }

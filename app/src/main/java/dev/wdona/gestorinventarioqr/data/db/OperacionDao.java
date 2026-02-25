@@ -31,4 +31,7 @@ public interface OperacionDao {
 
         @Query("SELECT * FROM Operacion_pendiente WHERE estado = :estado")
         List<OperacionEntity> getOperacionesPorEstado(String estado);
+
+        @Query("DELETE FROM Operacion_pendiente WHERE estado = :estado")
+        void eliminarOperacionesPorEstado(String estado);
 }

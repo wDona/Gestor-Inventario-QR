@@ -11,6 +11,5 @@ public interface OperacionLocalDataSource {
     Long getUltimoIdOperacionPendiente();
     List<Operacion> getAllOperaciones();
     List<Operacion> getOperacionesPorEstado(String estado);
-
-
+    void eliminarOperacionesPorEstado(String estado);
 }

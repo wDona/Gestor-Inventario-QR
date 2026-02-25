@@ -1,5 +1,7 @@
 package dev.wdona.gestorinventarioqr.data.datasource.mapper;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,5 +66,46 @@ public class ProductoMapper {
             entity.setFK_estanteriaId(producto.getEstanteria().getId());
         }
         return entity;
+    }
+
+    public static JSONObject toJSON(Producto producto) {
+        if (producto == null) {
+            return null;
+        }
+        JSONObject json = new JSONObject();
+        try {
+            json.put("id", producto.getId());
+            json.put("nombre", producto.getNombre());
+            json.put("precio", producto.getPrecio());
+            json.put("cantidad", producto.getCantidad());
+            if (producto.getEstanteria() != null) {
+                json.put("estanteriaId", producto.getEstanteria().getId());
+            } else {
+                json.put("estanteriaId", JSONObject.NULL);
+            }
+        } catch (Exception e) {
+            System.out.println("Error al convertir Producto a JSON: " + e.getMessage());
+            return null;
+        }
+        return json;
+    }
+
+    public static Producto toDomain(JSONObject json) {
+        if (json == null) {
+            return null;
+        }
+        try {
+            Long id = json.optLong("id", -1);
+            String nombre = json.optString("nombre", null);
+            double precio = json.optDouble("precio", 0);
+            int cantidad = json.optInt("cantidad", 0);
+            Long estanteriaId = json.has("estanteriaId") && !json.isNull("estanteriaId") ? json.getLong("estanteriaId") : null;
+            Estanteria estanteria = new Estanteria(estanteriaId, null, null);
+
+            return new Producto(id, nombre, precio, cantidad, estanteria);
+        } catch (Exception e) {
+            System.out.println("Error al convertir JSON a Producto: " + e.getMessage());
+            return null;
+        }
     }
 }

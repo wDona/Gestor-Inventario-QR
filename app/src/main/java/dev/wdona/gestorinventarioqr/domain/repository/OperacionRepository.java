@@ -15,4 +15,5 @@ public interface OperacionRepository {
     List<Operacion> getOperacionesPorEstado(EstadoOperacion estado);
     boolean reintentarOperacion(Operacion operacion);
     boolean reintentarAllOperaciones();
+    void eliminarOperacionesEnviadas();
 }

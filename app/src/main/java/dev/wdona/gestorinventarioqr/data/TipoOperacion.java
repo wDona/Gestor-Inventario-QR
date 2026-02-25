@@ -1,9 +1,9 @@
 package dev.wdona.gestorinventarioqr.data;
 
 public enum TipoOperacion {
-    ADD_UNDS_PRODUCT("ADD"),
-    REMOVE_UNDS_PRODUCT("REMOVE"),
-    ASSIGN_PRODUCT_TO_ESTANTERIA("ASSIGN");
+    ADD("ADD"),
+    REMOVE("REMOVE"),
+    ASSIGN("ASSIGN");
 
     private final String valor;
 

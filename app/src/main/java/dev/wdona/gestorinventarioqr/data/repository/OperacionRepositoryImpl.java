@@ -3,6 +3,7 @@ package dev.wdona.gestorinventarioqr.data.repository;
 import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.EstadoOperacion;
+import dev.wdona.gestorinventarioqr.data.TipoOperacion;
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.EstanteriaLocalDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.OperacionLocalDataSourceImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.ProductoLocalDataSourceImpl;
@@ -61,15 +62,15 @@ public class OperacionRepositoryImpl implements OperacionRepository {
             String tipoOperacion = operacion.getTipoOperacion();
 
             if (!estado.equals(EstadoOperacion.PENDIENTE.getValor()) && !estado.equals(EstadoOperacion.FALLIDA.getValor())) {
-                System.out.println("Operación no está en estado PENDIENTE");
+                System.out.println("Operación no está en estado PENDIENTE o FALLIDA: " + estado);
                 return false;
             }
 
-            if (tipoOperacion.equals("ADD")) {
+            if (tipoOperacion.equals(TipoOperacion.ADD.getValor())) {
                 productoRemote.addUndsProduct(productoLocal.getProductoById(operacion.getProductoId()), operacion.getCantidad());
-            } else if (tipoOperacion.equals("REMOVE")) {
+            } else if (tipoOperacion.equals(TipoOperacion.REMOVE.getValor())) {
                 productoRemote.removeUndsProduct(productoLocal.getProductoById(operacion.getProductoId()), operacion.getCantidad());
-            } else if (tipoOperacion.equals("ASSIGN")) {
+            } else if (tipoOperacion.equals(TipoOperacion.ASSIGN.getValor())) {
                 productoRemote.assignProductToEstanteria(productoLocal.getProductoById(operacion.getProductoId()), estanteriaLocal.getEstanteriaById(operacion.getEstanteriaId()));
             } else {
                 System.out.println("Tipo de operación desconocido: " + tipoOperacion);
@@ -112,5 +113,9 @@ public class OperacionRepositoryImpl implements OperacionRepository {
         return allSuccess;
     }
 
+    @Override
+    public void eliminarOperacionesEnviadas() {
+        operacionLocal.eliminarOperacionesPorEstado(EstadoOperacion.ENVIADA.getValor());
+    }
 
 }

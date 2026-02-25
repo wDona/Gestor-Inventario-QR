@@ -15,7 +15,7 @@ import dev.wdona.gestorinventarioqr.data.entity.EstanteriaEntity;
 import dev.wdona.gestorinventarioqr.data.entity.OperacionEntity;
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
 
-@Database(entities = {ProductoEntity.class, EstanteriaEntity.class, OperacionEntity.class}, version = 2, exportSchema = false)
+@Database(entities = {ProductoEntity.class, EstanteriaEntity.class, OperacionEntity.class}, version = 9, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract ProductoDao productoDao();
     public abstract EstanteriaDao estanteriaDao();
@@ -50,79 +50,132 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (count == 0) {
                     android.util.Log.d("AppDatabase", "Insertando datos iniciales...");
 
+                    // === ESTANTERIAS ===
                     EstanteriaEntity est1 = new EstanteriaEntity();
                     est1.setId(1L);
-                    est1.setNombre("Estanteria 1");
+                    est1.setNombre("Estanteria A - Electronica");
                     estanteriaDao.insertEstanteria(est1);
 
                     EstanteriaEntity est2 = new EstanteriaEntity();
                     est2.setId(2L);
-                    est2.setNombre("Estanteria 2");
+                    est2.setNombre("Estanteria B - Herramientas");
                     estanteriaDao.insertEstanteria(est2);
-                    android.util.Log.d("AppDatabase", "Estanterias insertadas");
 
-                    // También insertar productos de prueba
+                    EstanteriaEntity est3 = new EstanteriaEntity();
+                    est3.setId(3L);
+                    est3.setNombre("Estanteria C - Limpieza");
+                    estanteriaDao.insertEstanteria(est3);
+
+                    EstanteriaEntity est4 = new EstanteriaEntity();
+                    est4.setId(4L);
+                    est4.setNombre("Estanteria D - Oficina");
+                    estanteriaDao.insertEstanteria(est4);
+
+                    android.util.Log.d("AppDatabase", "4 Estanterias insertadas");
+
+                    // === PRODUCTOS ===
                     ProductoDao prodDao = productoDao();
+
+                    // Estanteria 1 - Electronica
                     ProductoEntity prod1 = new ProductoEntity();
                     prod1.setId(1L);
-                    prod1.setNombre("Producto A");
-                    prod1.setPrecio(10.0);
-                    prod1.setCantidad(10);
+                    prod1.setNombre("Cable USB-C");
+                    prod1.setPrecio(5.99);
+                    prod1.setCantidad(50);
                     prod1.setFK_estanteriaId(1L);
                     prodDao.insertProducto(prod1);
-                    android.util.Log.d("AppDatabase", "Producto A insertado en estanteria 1");
 
                     ProductoEntity prod2 = new ProductoEntity();
                     prod2.setId(2L);
-                    prod2.setNombre("Producto B");
-                    prod2.setPrecio(20.0);
-                    prod2.setCantidad(5);
-                    prod2.setFK_estanteriaId(2L);
+                    prod2.setNombre("Cargador 20W");
+                    prod2.setPrecio(15.99);
+                    prod2.setCantidad(30);
+                    prod2.setFK_estanteriaId(1L);
                     prodDao.insertProducto(prod2);
-                    android.util.Log.d("AppDatabase", "Producto B insertado en estanteria 2");
 
+                    ProductoEntity prod3 = new ProductoEntity();
+                    prod3.setId(3L);
+                    prod3.setNombre("Auriculares Bluetooth");
+                    prod3.setPrecio(29.99);
+                    prod3.setCantidad(20);
+                    prod3.setFK_estanteriaId(1L);
+                    prodDao.insertProducto(prod3);
+
+                    // Estanteria 2 - Herramientas
+                    ProductoEntity prod4 = new ProductoEntity();
+                    prod4.setId(4L);
+                    prod4.setNombre("Destornillador Phillips");
+                    prod4.setPrecio(3.50);
+                    prod4.setCantidad(100);
+                    prod4.setFK_estanteriaId(2L);
+                    prodDao.insertProducto(prod4);
+
+                    ProductoEntity prod5 = new ProductoEntity();
+                    prod5.setId(5L);
+                    prod5.setNombre("Llave inglesa");
+                    prod5.setPrecio(12.00);
+                    prod5.setCantidad(25);
+                    prod5.setFK_estanteriaId(2L);
+                    prodDao.insertProducto(prod5);
+
+                    ProductoEntity prod6 = new ProductoEntity();
+                    prod6.setId(6L);
+                    prod6.setNombre("Cinta metrica 5m");
+                    prod6.setPrecio(4.99);
+                    prod6.setCantidad(40);
+                    prod6.setFK_estanteriaId(2L);
+                    prodDao.insertProducto(prod6);
+
+                    // Estanteria 3 - Limpieza
+                    ProductoEntity prod7 = new ProductoEntity();
+                    prod7.setId(7L);
+                    prod7.setNombre("Detergente 2L");
+                    prod7.setPrecio(6.50);
+                    prod7.setCantidad(60);
+                    prod7.setFK_estanteriaId(3L);
+                    prodDao.insertProducto(prod7);
+
+                    ProductoEntity prod8 = new ProductoEntity();
+                    prod8.setId(8L);
+                    prod8.setNombre("Escoba industrial");
+                    prod8.setPrecio(8.99);
+                    prod8.setCantidad(15);
+                    prod8.setFK_estanteriaId(3L);
+                    prodDao.insertProducto(prod8);
+
+                    // Estanteria 4 - Oficina
+                    ProductoEntity prod9 = new ProductoEntity();
+                    prod9.setId(9L);
+                    prod9.setNombre("Boligrafos pack 10");
+                    prod9.setPrecio(2.99);
+                    prod9.setCantidad(200);
+                    prod9.setFK_estanteriaId(4L);
+                    prodDao.insertProducto(prod9);
+
+                    ProductoEntity prod10 = new ProductoEntity();
+                    prod10.setId(10L);
+                    prod10.setNombre("Cuaderno A4");
+                    prod10.setPrecio(1.50);
+                    prod10.setCantidad(150);
+                    prod10.setFK_estanteriaId(4L);
+                    prodDao.insertProducto(prod10);
+
+                    android.util.Log.d("AppDatabase", "10 Productos insertados");
+
+                    // === OPERACIONES DE EJEMPLO ===
                     OperacionDao operacionDao = operacionDao();
+
                     OperacionEntity operacion1 = new OperacionEntity();
                     operacion1.setId(1L);
                     operacion1.setTimestamp(System.currentTimeMillis());
-                    operacion1.setTipoOperacion(TipoOperacion.ADD_UNDS_PRODUCT.getValor());
+                    operacion1.setTipoOperacion(TipoOperacion.ADD.getValor());
                     operacion1.setProductoId(1L);
                     operacion1.setEstanteriaId(1L);
                     operacion1.setCantidad(10);
-                    operacion1.setEstado(EstadoOperacion.PENDIENTE.getValor());
+                    operacion1.setEstado(EstadoOperacion.ENVIADA.getValor());
                     operacionDao.agregarOperacion(operacion1);
 
-                    OperacionEntity operacion2 = new OperacionEntity();
-                    operacion2.setId(2L);
-                    operacion2.setTimestamp(System.currentTimeMillis());
-                    operacion2.setTipoOperacion(TipoOperacion.REMOVE_UNDS_PRODUCT.getValor());
-                    operacion2.setProductoId(2L);
-                    operacion2.setEstanteriaId(2L);
-                    operacion2.setCantidad(5);
-                    operacion2.setEstado(EstadoOperacion.PENDIENTE.getValor());
-                    operacionDao.agregarOperacion(operacion2);
-
-                    OperacionEntity operacion3 = new OperacionEntity();
-                    operacion3.setId(3L);
-                    operacion3.setTimestamp(System.currentTimeMillis());
-                    operacion3.setTipoOperacion(TipoOperacion.ASSIGN_PRODUCT_TO_ESTANTERIA.getValor());
-                    operacion3.setProductoId(1L);
-                    operacion3.setEstanteriaId(2L);
-                    operacion3.setCantidad(0);
-                    operacion3.setEstado(EstadoOperacion.PENDIENTE.getValor());
-                    operacionDao.agregarOperacion(operacion3);
-
-                    OperacionEntity operacion4 = new OperacionEntity();
-                    operacion4.setId(4L);
-                    operacion4.setTimestamp(System.currentTimeMillis());
-                    operacion4.setTipoOperacion(TipoOperacion.ADD_UNDS_PRODUCT.getValor());
-                    operacion4.setProductoId(2L);
-                    operacion4.setEstanteriaId(1L);
-                    operacion4.setCantidad(5);
-                    operacion4.setEstado(EstadoOperacion.ENVIADA.getValor());
-                    operacionDao.agregarOperacion(operacion4);
-
-                    android.util.Log.d("AppDatabase", "Operaciones insertadas");
+                    android.util.Log.d("AppDatabase", "Operaciones de ejemplo insertadas");
                     android.util.Log.d("AppDatabase", "Datos iniciales insertados correctamente");
                 } else {
                     android.util.Log.d("AppDatabase", "Ya existen datos, no se insertan nuevos");

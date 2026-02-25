@@ -2,6 +2,8 @@ package dev.wdona.gestorinventarioqr.presentation.ui;
 
 import android.app.Application;
 
+import org.json.JSONObject;
+
 import dev.wdona.gestorinventarioqr.data.api.impl.EstanteriaApiImpl;
 import dev.wdona.gestorinventarioqr.data.api.impl.ProductoApiImpl;
 import dev.wdona.gestorinventarioqr.data.datasource.local.impl.EstanteriaLocalDataSourceImpl;
@@ -69,8 +71,9 @@ public class App extends Application {
             android.util.Log.d(TAG, "RemoteDataSources creados");
 
             EstanteriaRepositoryImpl estanteriaRepository = new EstanteriaRepositoryImpl(estanteriaRemoteDataSource, estanteriaLocalDataSource);
-            ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource);
+            // OperacionRepository se crea ANTES que ProductoRepository porque ProductoRepository lo necesita
             OperacionRepositoryImpl operacionRepository = new OperacionRepositoryImpl(operacionLocalDataSource, productoRemoteDataSource, estanteriaLocalDataSource, productoLocalDataSource);
+            ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource, operacionRepository);
             android.util.Log.d(TAG, "Repositories creados");
 
             this.estanteriaViewModel = new EstanteriaViewModel(estanteriaRepository);

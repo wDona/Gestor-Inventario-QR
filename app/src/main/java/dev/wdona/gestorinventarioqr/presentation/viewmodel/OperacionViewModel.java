@@ -63,4 +63,9 @@ public class OperacionViewModel {
     public Operacion getOperacionById(Long id) {
         return repository.getOperacionPendienteById(id);
     }
+
+    public void limpiarOperacionesEnviadas() {
+        repository.eliminarOperacionesEnviadas();
+        cargarOperaciones();
+    }
 }

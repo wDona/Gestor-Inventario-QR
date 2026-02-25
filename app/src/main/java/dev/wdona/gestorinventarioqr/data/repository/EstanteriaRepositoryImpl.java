@@ -79,4 +79,11 @@ public class EstanteriaRepositoryImpl implements EstanteriaRepository {
 
         return null;
     }
+
+    @Override
+    public void sincronizar(Estanteria... estanterias) {
+        remote.subirCambios(estanterias);
+        local.bajarCambios(estanterias);
+    }
+
 }

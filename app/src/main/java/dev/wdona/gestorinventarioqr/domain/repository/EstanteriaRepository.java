@@ -7,6 +7,6 @@ import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 
 public interface EstanteriaRepository {
         Estanteria getEstanteriaById(Long id);
-
         Estanteria getEstanteriaConProductosById(Long idEstanteria);
+        void sincronizar(Estanteria ... estanterias);
 }

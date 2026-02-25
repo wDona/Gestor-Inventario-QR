@@ -15,30 +15,18 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     }
 
     @Override
-    public void addUndsProduct(Producto producto, int cantidad) {
-        try {
-            api.addUndsProduct(producto, cantidad);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+    public void addUndsProduct(Producto producto, int cantidad) throws Exception {
+        api.addUndsProduct(producto, cantidad);
     }
 
     @Override
-    public void removeUndsProduct(Producto producto, int cantidad) {
-        try {
-            api.removeUndsProduct(producto, cantidad);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+    public void removeUndsProduct(Producto producto, int cantidad) throws Exception {
+        api.removeUndsProduct(producto, cantidad);
     }
 
     @Override
-    public void assignProductToEstanteria(Producto producto, Estanteria estanteria) {
-        try {
-            api.assignProductToEstanteria(producto, estanteria);
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-        }
+    public void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws Exception {
+        api.assignProductToEstanteria(producto, estanteria);
     }
 
     @Override
@@ -62,7 +50,32 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     }
 
     @Override
-    public void subirCambios(List<Producto> productosPendientes) {
-        // TODO
+    public void subirCambios(Producto... productos) {
+        for (Producto producto : productos) {
+            try {
+                // Intentar obtener el producto remoto para comparar
+                Producto remoto = api.getProductoById(producto.getId());
+                if (remoto == null) {
+                    // Si no existe en remoto, agregarlo
+                    api.addUndsProduct(producto, producto.getCantidad());
+                } else {
+                    // Si existe, comparar cantidades y estantería
+                    if (producto.getCantidad() != remoto.getCantidad()) {
+                        int diferencia = producto.getCantidad() - remoto.getCantidad();
+                        if (diferencia > 0) {
+                            api.addUndsProduct(producto, diferencia);
+                        } else {
+                            api.removeUndsProduct(producto, -diferencia);
+                        }
+                    }
+                    if ((producto.getEstanteria() == null && remoto.getEstanteria() != null) ||
+                        (producto.getEstanteria() != null && !producto.getEstanteria().equals(remoto.getEstanteria()))) {
+                        api.assignProductToEstanteria(producto, producto.getEstanteria());
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error al subir cambios para producto ID " + producto.getId() + ": " + e.getMessage());
+            }
+        }
     }
 }

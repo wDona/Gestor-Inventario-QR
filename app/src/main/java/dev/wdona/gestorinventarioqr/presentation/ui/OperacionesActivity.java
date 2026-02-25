@@ -26,6 +26,7 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
     private OperacionAdapter operacionAdapter;
     private TextView tvEmpty;
     private Button btnReintentarTodas;
+    private Button btnLimpiarEnviadas;
     private ExecutorService executor;
 
     @Override
@@ -46,6 +47,7 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
         }
 
         initViews();
+        observarOperaciones();
         cargarOperaciones();
     }
 
@@ -53,34 +55,48 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
         recyclerView = findViewById(R.id.rvOperaciones);
         tvEmpty = findViewById(R.id.tvEmpty);
         btnReintentarTodas = findViewById(R.id.btnReintentarTodas);
+        btnLimpiarEnviadas = findViewById(R.id.btnLimpiarEnviadas);
 
         // Configurar RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         operacionAdapter = new OperacionAdapter(this);
         recyclerView.setAdapter(operacionAdapter);
 
+        // Botón limpiar enviadas
+        btnLimpiarEnviadas.setOnClickListener(v -> limpiarOperacionesEnviadas());
+
         // Botón reintentar todas
         btnReintentarTodas.setOnClickListener(v -> reintentarTodasOperaciones());
     }
 
+    private void observarOperaciones() {
+        // Observar el LiveData para actualizar la UI automáticamente
+        operacionViewModel.operacionLiveData.observe(this, operaciones -> {
+            if (operaciones != null && !operaciones.isEmpty()) {
+                operacionAdapter.setOperaciones(operaciones);
+                recyclerView.setVisibility(View.VISIBLE);
+                tvEmpty.setVisibility(View.GONE);
+                btnReintentarTodas.setVisibility(View.VISIBLE);
+            } else {
+                recyclerView.setVisibility(View.GONE);
+                tvEmpty.setVisibility(View.VISIBLE);
+                btnReintentarTodas.setVisibility(View.GONE);
+            }
+        });
+    }
+
     private void cargarOperaciones() {
         executor.execute(() -> {
-            cargarOperaciones(); // TODO: CUIDADO
-            List<Operacion> operaciones = operacionViewModel.operacionLiveData.getValue();
-
-            runOnUiThread(() -> {
-                if (operaciones != null && !operaciones.isEmpty()) {
-                    operacionAdapter.setOperaciones(operaciones);
-                    recyclerView.setVisibility(View.VISIBLE);
-                    tvEmpty.setVisibility(View.GONE);
-                    btnReintentarTodas.setVisibility(View.VISIBLE);
-                } else {
-                    recyclerView.setVisibility(View.GONE);
-                    tvEmpty.setVisibility(View.VISIBLE);
-                    btnReintentarTodas.setVisibility(View.GONE);
-                }
-            });
+            operacionViewModel.cargarOperaciones();
+            // El Observer se encargará de actualizar la UI
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar operaciones al volver a la activity
+        cargarOperaciones();
     }
 
     @Override
@@ -94,8 +110,7 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
                 } else {
                     Toast.makeText(this, "Error al reenviar operación", Toast.LENGTH_SHORT).show();
                 }
-                // Recargar lista
-                cargarOperaciones();
+                // El Observer actualiza la UI automáticamente
             });
         });
     }
@@ -110,8 +125,18 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
                 } else {
                     Toast.makeText(this, "Algunas operaciones fallaron", Toast.LENGTH_SHORT).show();
                 }
-                // Recargar lista
-                cargarOperaciones();
+                // El Observer actualiza la UI automáticamente
+            });
+        });
+    }
+
+    private void limpiarOperacionesEnviadas() {
+        executor.execute(() -> {
+            operacionViewModel.limpiarOperacionesEnviadas();
+
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Operaciones enviadas eliminadas", Toast.LENGTH_SHORT).show();
+                // El Observer actualiza la UI automáticamente
             });
         });
     }

@@ -50,45 +50,11 @@ public class OldMainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        inicializarCapaDatos();
 
-        Button btnScanEstanteria = findViewById(R.id.btnScan);
-        btnScanEstanteria.setOnClickListener(v -> {
-            Intent intent = new Intent(OldMainActivity.this, MainScanActivity.class);
-            startActivity(intent);
-        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-    }
-
-    private void inicializarCapaDatos() {
-        EstanteriaApiImpl estanteriaApi = new EstanteriaApiImpl();
-        ProductoApiImpl productoApi = new ProductoApiImpl();
-
-        AppDatabase appDatabase = AppDatabase.getDatabase(getApplicationContext());
-        ProductoDao productoDao = appDatabase.productoDao();
-        EstanteriaDao estanteriaDao = appDatabase.estanteriaDao();
-        OperacionDao operacionDao = appDatabase.operacionDao(); // FIXME
-
-        EstanteriaLocalDataSourceImpl estanteriaLocalDataSource = new EstanteriaLocalDataSourceImpl(estanteriaDao);
-        ProductoLocalDataSourceImpl productoLocalDataSource = new ProductoLocalDataSourceImpl(productoDao, estanteriaDao);
-        OperacionLocalDataSourceImpl operacionLocalDataSource = new OperacionLocalDataSourceImpl(operacionDao);
-
-        EstanteriaRemoteDataSourceImpl estanteriaRemoteDataSource = new EstanteriaRemoteDataSourceImpl(estanteriaApi);
-        ProductoRemoteDataSourceImpl productoRemoteDataSource = new ProductoRemoteDataSourceImpl(productoApi);
-
-        EstanteriaRepositoryImpl estanteriaRepository = new EstanteriaRepositoryImpl(estanteriaRemoteDataSource, estanteriaLocalDataSource);
-        ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource);
-        OperacionRepositoryImpl operacionRepository = new OperacionRepositoryImpl(operacionLocalDataSource, productoRemoteDataSource, estanteriaLocalDataSource, productoLocalDataSource);
-
-        this.estanteriaViewModel = new EstanteriaViewModel(estanteriaRepository);
-        this.productoViewModel = new ProductoViewModel(productoRepository);
-        this.operacionViewModel = new OperacionViewModel(operacionRepository);
-
-        appDatabase.populateInitialData();
-        MockDatabaseController.initialize();
     }
 }

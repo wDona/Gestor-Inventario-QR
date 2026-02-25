@@ -53,4 +53,8 @@ public class ProductoViewModel extends ViewModel {
     public Producto getProductoById(Long id) {
         return repository.getProductoById(id);
     }
+
+    public void sincronizar(Producto... productos) {
+        repository.sincronizar(productos);
+    }
 }

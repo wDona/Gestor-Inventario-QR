@@ -6,5 +6,5 @@ import dev.wdona.gestorinventarioqr.data.datasource.common.ProductoDataSource;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
 public interface ProductoRemoteDataSource extends ProductoDataSource {
-    void subirCambios(List<Producto> productosPendientes);
+    void subirCambios(Producto... productos);
 }

@@ -17,4 +17,7 @@ public class EstanteriaRemoteDataSourceImpl {
     public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
         return api.getEstanteriaConProductosById(idEstanteria);
     }
+    public void subirCambios(Estanteria... estanterias) {
+        api.subirCambios(estanterias);
+    }
 }

@@ -1,67 +1,62 @@
 package dev.wdona.gestorinventarioqr.data.api.impl;
 
+import org.json.JSONException;
+
 import java.util.Collections;
 import java.util.List;
 
 import dev.wdona.gestorinventarioqr.data.api.ProductoApi;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
-import dev.wdona.gestorinventarioqr.mock.MockDatabaseController;
+import dev.wdona.gestorinventarioqr.mock.MockConfig;
 import dev.wdona.gestorinventarioqr.mock.MockDatabaseOperations;
 
 public class ProductoApiImpl implements ProductoApi {
-    MockDatabaseOperations mockDatabaseOperations = new MockDatabaseController();
+
+    // Obtiene el mock dinámicamente cada vez (respeta el estado offline/online actual)
+    private MockDatabaseOperations getMock() {
+        return MockConfig.getMockDatabase();
+    }
+
     @Override
-    public void addUndsProduct(Producto producto, int cantidad) {
+    public void addUndsProduct(Producto producto, int cantidad) throws JSONException {
         if (producto == null || cantidad <= 0) {
             System.out.println("Error, cantidad no válida o producto nulo");
-            return;
+            throw new IllegalArgumentException("Error, cantidad no válida o producto nulo");
         }
 
-        try {
-            mockDatabaseOperations.addUndsProduct(producto, cantidad);
-        } catch (Exception e) {
-            System.out.println("Error al agregar unidades del producto: " + e.getMessage());
-        }
+        getMock().addUndsProduct(producto, cantidad);
     }
 
     @Override
-    public void removeUndsProduct(Producto producto, int cantidad) {
+    public void removeUndsProduct(Producto producto, int cantidad) throws JSONException {
         if (producto == null || cantidad <= 0 || producto.getCantidad() - cantidad < 0) {
             System.out.println("Error, cantidad no válida o producto nulo");
-            return;
+            throw new IllegalArgumentException("Error, cantidad no válida o producto nulo");
         }
 
-        try {
-            mockDatabaseOperations.removeUndsProduct(producto, cantidad);
-        } catch (Exception e) {
-            System.out.println("Error al agregar unidades del producto: " + e.getMessage());
-        }
+        getMock().removeUndsProduct(producto, cantidad);
     }
 
     @Override
-    public void assignProductToEstanteria(Producto producto, Estanteria estanteria) {
+    public void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws JSONException {
         if (producto == null || estanteria == null) {
             System.out.println("Error, producto o estanteria nulo");
-            return;
+            throw new IllegalArgumentException("Error, producto o estanteria nulo");
         }
 
-        try {
-            mockDatabaseOperations.assignProductToEstanteria(producto, estanteria);
-        } catch (Exception e) {
-            System.out.println("Error al asignar producto a estanteria: " + e.getMessage());
-        }
+        getMock().assignProductToEstanteria(producto, estanteria);
     }
 
     @Override
     public Producto getProductoById(Long id) {
         if (id == null || id <= 0) {
             System.out.println("Error, ID no válido");
-            return null;
+            throw new IllegalArgumentException("Error, ID no válido");
         }
 
         try {
-            return mockDatabaseOperations.getProductoById(id);
+            return getMock().getProductoById(id);
         } catch (Exception e) {
             System.out.println("Error al obtener producto por ID: " + e.getMessage());
             return null;
@@ -78,7 +73,7 @@ public class ProductoApiImpl implements ProductoApi {
                 }
             }
 
-            mockDatabaseOperations.subirCambios(productos);
+            getMock().subirCambiosProducto(productos);
         } catch (Exception e) {
             System.out.println("Error al subir cambios del producto: " + e.getMessage());
         }
@@ -87,7 +82,7 @@ public class ProductoApiImpl implements ProductoApi {
     @Override
     public List<Producto> getAllProductos() {
         try {
-            return mockDatabaseOperations.getAllProductos();
+            return getMock().getAllProductos();
         } catch (Exception e) {
             System.out.println("Error al obtener todos los productos: " + e.getMessage());
             return Collections.emptyList();

@@ -27,4 +27,6 @@ public interface EstanteriaDao {
     int getCount();
     @Insert
     void insertEstanteria(EstanteriaEntity estanteria);
+    @Query("SELECT * FROM Estanteria")
+    List<EstanteriaEntity> getAllEstanterias();
 }

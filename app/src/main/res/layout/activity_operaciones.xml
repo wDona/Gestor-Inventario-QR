@@ -18,6 +18,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Botón Limpiar Enviadas -->
+    <Button
+        android:id="@+id/btnLimpiarEnviadas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Limpiar enviadas"
+        app:layout_constraintEnd_toStartOf="@id/btnReintentarTodas"
+        app:layout_constraintTop_toBottomOf="@id/tvTitulo" />
+
     <!-- Botón Reintentar Todas -->
     <Button
         android:id="@+id/btnReintentarTodas"

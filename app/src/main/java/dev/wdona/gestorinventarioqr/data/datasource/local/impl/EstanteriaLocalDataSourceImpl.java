@@ -37,4 +37,14 @@ public class EstanteriaLocalDataSourceImpl {
         estanteria.setProductos(ProductoMapper.toDomainList(relacion.productos, estanteria));
         return estanteria;
     }
+
+    public void bajarCambios(Estanteria ... estanterias) {
+        for (Estanteria estanteria : estanterias) {
+
+        }
+    }
+
+    public List<Estanteria> getAllEstanterias() {
+        return EstanteriaMapper.toDomain(dao.getAllEstanterias());
+    }
 }
