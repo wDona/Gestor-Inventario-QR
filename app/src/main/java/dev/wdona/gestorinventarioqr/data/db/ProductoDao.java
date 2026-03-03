@@ -31,4 +31,6 @@ public interface ProductoDao {
     @Query("SELECT * FROM Producto")
     List<ProductoEntity> getAllProductos();
 
+    @Update
+    void updateAll(ProductoEntity... productoEntities);
 }

@@ -7,4 +7,5 @@ import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
 public interface ProductoLocalDataSource extends ProductoDataSource {
     void bajarCambios(Producto ... productos);
+    void insertProducto(Producto producto);
 }

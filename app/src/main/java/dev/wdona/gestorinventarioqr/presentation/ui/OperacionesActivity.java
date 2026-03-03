@@ -125,7 +125,6 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
                 } else {
                     Toast.makeText(this, "Algunas operaciones fallaron", Toast.LENGTH_SHORT).show();
                 }
-                // El Observer actualiza la UI automáticamente
             });
         });
     }

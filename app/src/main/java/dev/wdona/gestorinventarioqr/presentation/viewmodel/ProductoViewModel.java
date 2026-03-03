@@ -21,7 +21,7 @@ public class ProductoViewModel extends ViewModel {
     private MutableLiveData<List<Producto>> _productosLiveData = new MutableLiveData<>();
     public LiveData<List<Producto>> productosLiveData = _productosLiveData;
 
-    public boolean addUndsProduct(Producto producto, int unidadesSumadas) {
+    public boolean addUndsProduct(Producto producto, int unidadesSumadas) throws Exception {
         if (unidadesSumadas <= 0) {
             System.out.println("Error: No se pueden agregar unidades negativas o cero.");
             return false;
@@ -32,7 +32,7 @@ public class ProductoViewModel extends ViewModel {
         return true;
     }
 
-    public boolean removeUndsProduct(Producto producto, int unidadesRestadas) {
+    public boolean removeUndsProduct(Producto producto, int unidadesRestadas) throws Exception {
         if (unidadesRestadas <= 0) {
             System.out.println("Error: No se pueden restar unidades negativas o cero.");
             return false;
@@ -46,7 +46,7 @@ public class ProductoViewModel extends ViewModel {
         return true;
     }
 
-    public void assignProductToEstanteria(Producto producto, Estanteria estanteria) {
+    public void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws Exception {
         repository.assignProductToEstanteria(producto, estanteria);
     }
 

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,6 +33,7 @@ import dev.wdona.gestorinventarioqr.data.repository.EstanteriaRepositoryImpl;
 import dev.wdona.gestorinventarioqr.data.repository.OperacionRepositoryImpl;
 import dev.wdona.gestorinventarioqr.data.repository.ProductoRepositoryImpl;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
+import dev.wdona.gestorinventarioqr.domain.model.Operacion;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 import dev.wdona.gestorinventarioqr.mock.MockConfig;
 import dev.wdona.gestorinventarioqr.presentation.ui.scan.ProductoScanAdapter;
@@ -62,7 +64,10 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     private Producto currentProducto;
     private boolean isAsignarProductoAEstanteria = false;
     private boolean isMoverProductoAqui = false;  // Nuevo modo: mover producto a estantería actual
-    private boolean syncPendiente = false; // Para controlar sincronización al volver a online
+    private boolean syncOperacionesPendiente = false; // Para controlar sincronización al volver a online
+    private boolean syncProductosPendiente = false; // Para controlar sincronización al volver a online
+    private boolean syncedOperacionesPrincipio = false;
+    private boolean isOffline = MockConfig.isOffline();
     private ProductoScanAdapter adapter;
     private ExecutorService executor;
 
@@ -84,8 +89,76 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
         initViews();
         initScanner();
 
+        observarDatos();
         observarProductos();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Siempre recargar estantería actual si existe
+        if (currentEstanteria != null) {
+            android.util.Log.d("MainScan", "onResume - Recargando estantería: " + currentEstanteria.getNombre());
+            recargarEstanteriaCompleta();
+        }
+    }
+
+    private void recargarEstanteriaCompleta() {
+        if (currentEstanteria == null) return;
+
+        Long estanteriaId = currentEstanteria.getId();
+        android.util.Log.d("MainScan", "Recargando estantería ID: " + estanteriaId);
+
+        executor.execute(() -> {
+            try {
+                // Forzar recarga completa desde repository
+                Estanteria estanteriaActualizada = estanteriaViewModel.getEstanteriaConProductosById(estanteriaId);
+
+                runOnUiThread(() -> {
+                    if (estanteriaActualizada != null) {
+                        currentEstanteria = estanteriaActualizada;
+                        mostrarEstanteria(estanteriaActualizada);
+                        android.util.Log.d("MainScan", "Estantería recargada con " +
+                                (estanteriaActualizada.getProductos() != null ? estanteriaActualizada.getProductos().size() : 0) + " productos");
+                    } else {
+                        android.util.Log.e("MainScan", "Error: No se pudo recargar la estantería");
+                    }
+                });
+            } catch (Exception e) {
+                android.util.Log.e("MainScan", "Error recargando estantería: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    private void mostrarEstanteria(Estanteria estanteria) {
+        tvEstanteriaInfo.setText("📦 " + estanteria.getNombre());
+        tvEstanteriaInfo.setVisibility(View.VISIBLE);
+        llBotonesEstanteria.setVisibility(View.VISIBLE);
+
+        List<Producto> productos = estanteria.getProductos();
+        if (productos != null && !productos.isEmpty()) {
+            // Limpiar adapter antes de setear nuevos productos
+            adapter.setProductos(new ArrayList<>());
+            adapter.notifyDataSetChanged();
+
+            // Ahora setear los productos actualizados
+            adapter.setProductos(productos);
+            adapter.notifyDataSetChanged();
+            rvProductos.setVisibility(View.VISIBLE);
+
+            android.util.Log.d("MainScan", "Mostrando " + productos.size() + " productos en RecyclerView");
+            for (Producto p : productos) {
+                android.util.Log.d("MainScan", "- " + p.getNombre() + " (cantidad: " + p.getCantidad() + ")");
+            }
+        } else {
+            adapter.setProductos(new ArrayList<>());
+            adapter.notifyDataSetChanged();
+            rvProductos.setVisibility(View.GONE);
+            android.util.Log.d("MainScan", "Estantería sin productos");
+        }
+    }
+
 
     private void inicializarViewModels() {
         App app = App.getInstance();
@@ -163,7 +236,7 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     }
 
     private void toggleOfflineMode() {
-        boolean isOffline = MockConfig.toggleOffline();
+        isOffline = MockConfig.toggleOffline();
         actualizarBotonOffline();
         String mensaje = isOffline ? "Modo OFFLINE activado" : "Modo ONLINE activado";
         Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
@@ -177,11 +250,47 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
             btnToggleOffline.setText("Modo: ONLINE");
             btnToggleOffline.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF4CAF50)); // Verde
 
-            syncPendiente = true;
+            syncOperacionesPendiente = true;
+            syncProductosPendiente = true;
+
+            // Al cambiar a online, ejecutar sincronización automática
+            ejecutarSincronizacionCompleta();
         }
+
+        refrescarEstanteriaActual();
     }
 
-    private void sincronizar() {
+    private void ejecutarSincronizacionCompleta() {
+        Toast.makeText(this, "Sincronizando datos...", Toast.LENGTH_SHORT).show();
+
+        executor.execute(() -> {
+            try {
+                reintentarOperacionesPendientes();
+                sincronizarProductos();
+
+                if (currentEstanteria != null) {
+                    recargarEstanteriaCompleta();
+                }
+
+                runOnUiThread(() -> {
+                    Toast.makeText(MainScanActivity.this, "Sincronización completada", Toast.LENGTH_SHORT).show();
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("MainScan", "Error en sincronización automática: " + e.getMessage());
+                runOnUiThread(() -> {
+                    Toast.makeText(MainScanActivity.this, "Error en sincronización", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void reintentarOperacionesPendientes() {
+        android.util.Log.d("MainScan", "Reintentando todas las operaciones pendientes...");
+        operacionViewModel.reintentarEnvioAllOperaciones();
+    }
+
+    private void sincronizarProductos() {
         List<Producto> productos = productoViewModel.productosLiveData.getValue();
         if (productos != null && !productos.isEmpty()) {
             android.util.Log.d("MainScanActivity", "Sincronización iniciada con " + productos.size() + " productos.");
@@ -191,14 +300,67 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
         }
     }
 
+    private void observarDatos() {
+        MediatorLiveData<Boolean> syncMediator = new MediatorLiveData<>();
+
+        syncMediator.addSource(productoViewModel.productosLiveData, productos -> {
+            isListo(syncMediator, productos, operacionViewModel.operacionLiveData.getValue());
+        });
+
+        syncMediator.addSource(operacionViewModel.operacionLiveData, operaciones -> {
+            isListo(syncMediator, productoViewModel.productosLiveData.getValue(), operaciones);
+        });
+
+        syncMediator.observe(this, listo -> {
+            if (!listo) return;
+            if (!syncedOperacionesPrincipio && !MockConfig.isOffline()) {
+                syncedOperacionesPrincipio = true;
+                operacionViewModel.reintentarEnvioAllOperaciones();
+                sincronizarProductos();
+            }
+
+            if ((syncOperacionesPendiente || syncProductosPendiente)) {
+                if (syncOperacionesPendiente) {
+                    operacionViewModel.reintentarEnvioAllOperaciones();
+                    syncOperacionesPendiente = false;
+                }
+                if (syncProductosPendiente) {
+                    sincronizarProductos();
+                    syncProductosPendiente = false;
+                }
+            }
+
+
+        });
+    }
+
+    private void isListo(MediatorLiveData<Boolean> syncMediator, List<Producto> productos, List<Operacion> operaciones) {
+        if (productos != null && !productos.isEmpty() && operaciones != null && !operaciones.isEmpty() && !syncedOperacionesPrincipio) {
+            syncMediator.setValue(true);
+        } else if ((productos == null || productos.isEmpty()) && (operaciones == null || operaciones.isEmpty())) {
+            syncMediator.setValue(false);
+        } else if (productos != null && !productos.isEmpty() && operaciones != null && !operaciones.isEmpty() && (syncProductosPendiente || syncOperacionesPendiente)){
+            syncMediator.setValue(true);
+        } else if (productos != null && !productos.isEmpty() && operaciones != null && !operaciones.isEmpty() && isOffline) {
+            syncMediator.setValue(true);
+        }
+    }
+
+    private void refrescarEstanteriaActual() {
+        if (currentEstanteria != null) {
+            handleEstanteriaScan(String.valueOf(currentEstanteria.getId()));
+        }
+    }
+
     private void observarProductos() {
         productoViewModel.productosLiveData.observe(this, productos -> {
-            if (syncPendiente && productos != null && !productos.isEmpty()) {
-                sincronizar();
-                syncPendiente = false;
+            if (syncProductosPendiente && productos != null && !productos.isEmpty()) {
+                sincronizarProductos();
+                syncProductosPendiente = false;
             }
         });
     }
+
 
     private void initScanner() {
         try {
@@ -262,6 +424,7 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
             tvStatus.setText("Error al inicializar");
             Toast.makeText(this, "No se pudo inicializar el escáner", Toast.LENGTH_LONG).show();
         }
+
     }
 
     private void processScanResult(String data) {
@@ -444,10 +607,16 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                         mostrarConfirmacionDialog(() -> {
                             executor.execute(() -> {
                                 boolean exito;
-                                if (esAgregar) {
-                                    exito = productoViewModel.addUndsProduct(producto, cantidad);
-                                } else {
-                                    exito = productoViewModel.removeUndsProduct(producto, cantidad);
+
+                                try {
+                                    if (esAgregar) {
+                                        exito = productoViewModel.addUndsProduct(producto, cantidad);
+                                    } else {
+                                        exito = productoViewModel.removeUndsProduct(producto, cantidad);
+                                    }
+                                } catch (Exception e) {
+                                    android.util.Log.e("MainScanActivity", "Error al modificar unidades: " + e.getMessage());
+                                    exito = false;
                                 }
 
                                 if (exito) {

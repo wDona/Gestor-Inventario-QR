@@ -1,5 +1,7 @@
 package dev.wdona.gestorinventarioqr.data.datasource.remote.impl;
 
+import android.util.Log;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -55,10 +57,7 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
             try {
                 // Intentar obtener el producto remoto para comparar
                 Producto remoto = api.getProductoById(producto.getId());
-                if (remoto == null) {
-                    // Si no existe en remoto, agregarlo
-                    api.addUndsProduct(producto, producto.getCantidad());
-                } else {
+                if (remoto != null) {
                     // Si existe, comparar cantidades y estantería
                     if (producto.getCantidad() != remoto.getCantidad()) {
                         int diferencia = producto.getCantidad() - remoto.getCantidad();
@@ -68,10 +67,11 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
                             api.removeUndsProduct(producto, -diferencia);
                         }
                     }
-                    if ((producto.getEstanteria() == null && remoto.getEstanteria() != null) ||
-                        (producto.getEstanteria() != null && !producto.getEstanteria().equals(remoto.getEstanteria()))) {
+                    if ((producto.getEstanteria() != null && !producto.getEstanteria().equals(remoto.getEstanteria()))) {
                         api.assignProductToEstanteria(producto, producto.getEstanteria());
                     }
+                } else {
+                    Log.d("ProductRemoteDataSource", "Producto ID " + producto.getId() + " no existe en remoto");
                 }
             } catch (Exception e) {
                 System.out.println("Error al subir cambios para producto ID " + producto.getId() + ": " + e.getMessage());

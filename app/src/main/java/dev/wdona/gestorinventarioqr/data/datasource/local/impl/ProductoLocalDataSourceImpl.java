@@ -1,5 +1,6 @@
 package dev.wdona.gestorinventarioqr.data.datasource.local.impl;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,13 +91,19 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
 
     @Override
     public void bajarCambios(Producto ... productos) {
-        for (Producto producto : productos) {
-            try {
-                ProductoEntity entity = ProductoMapper.toEntity(producto);
-                dao.updateProducto(entity);
-            } catch (Exception e) {
-                System.out.println("Error al bajar cambios para producto ID " + producto.getId() + ": " + e.getMessage());
-            }
+        try {
+            dao.updateAll(ProductoMapper.toEntityList(productos).toArray(new ProductoEntity[0]));
+        } catch (Exception e) {
+            System.out.println("Error al bajar cambios de los producots " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void insertProducto(Producto producto) {
+        try {
+            dao.insertProducto(ProductoMapper.toEntity(producto));
+        } catch (Exception e) {
+            System.out.println("Error al insertar producto: " + e.getMessage());
         }
     }
 }

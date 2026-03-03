@@ -108,4 +108,26 @@ public class ProductoMapper {
             return null;
         }
     }
+
+    public static List<ProductoEntity> toEntityList(List<Producto> productos) {
+        if (productos == null) {
+            return null;
+        }
+        List<ProductoEntity> entities = new ArrayList<>();
+        for (Producto producto : productos) {
+            entities.add(toEntity(producto));
+        }
+        return entities;
+    }
+
+    public static List<ProductoEntity> toEntityList(Producto... productos) {
+        if (productos == null) {
+            return null;
+        }
+        List<ProductoEntity> entities = new ArrayList<>();
+        for (Producto producto : productos) {
+            entities.add(toEntity(producto));
+        }
+        return entities;
+    }
 }
