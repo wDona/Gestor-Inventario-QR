@@ -55,26 +55,9 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     public void subirCambios(Producto... productos) {
         for (Producto producto : productos) {
             try {
-                // Intentar obtener el producto remoto para comparar
-                Producto remoto = api.getProductoById(producto.getId());
-                if (remoto != null) {
-                    // Si existe, comparar cantidades y estantería
-                    if (producto.getCantidad() != remoto.getCantidad()) {
-                        int diferencia = producto.getCantidad() - remoto.getCantidad();
-                        if (diferencia > 0) {
-                            api.addUndsProduct(producto, diferencia);
-                        } else {
-                            api.removeUndsProduct(producto, -diferencia);
-                        }
-                    }
-                    if ((producto.getEstanteria() != null && !producto.getEstanteria().equals(remoto.getEstanteria()))) {
-                        api.assignProductToEstanteria(producto, producto.getEstanteria());
-                    }
-                } else {
-                    Log.d("ProductRemoteDataSource", "Producto ID " + producto.getId() + " no existe en remoto");
-                }
+                api.subirCambios(producto);
             } catch (Exception e) {
-                System.out.println("Error al subir cambios para producto ID " + producto.getId() + ": " + e.getMessage());
+                Log.e("ProductoRemoteDS", "Error al subir cambios para producto ID " + producto.getId() + ": " + e.getMessage());
             }
         }
     }

@@ -37,8 +37,6 @@ public class JSONUtils {
         return false;
     }
 
-
-
     public static JSONObject cargarJSONDesdeArchivo(String nombreArchivo) throws JSONException {
         StringBuilder sb = new StringBuilder();
         File file = getFile(nombreArchivo);
@@ -52,7 +50,7 @@ public class JSONUtils {
             }
         } catch (Exception e) {
             android.util.Log.e("JSONUtils", "Error al cargar JSON " + nombreArchivo + ": " + e.getMessage());
-            return new JSONObject(); // Retornar objeto vacío si hay error
+            return new JSONObject();
         }
 
         String content = sb.toString().trim();
@@ -86,6 +84,17 @@ public class JSONUtils {
         }
     }
 
+    public static void anadirJSONObjectAlArchivoConClave(JSONObject json, String nombreArchivo, String clave) {
+        try {
+            JSONObject jsonArchivo = cargarJSONDesdeArchivo(nombreArchivo);
+            jsonArchivo.put(clave, json);
+            escribirJSONDeNuevo(jsonArchivo, nombreArchivo);
+            android.util.Log.d("JSONUtils", "Añadido objeto con clave " + clave + " a " + nombreArchivo);
+        } catch (JSONException e) {
+            android.util.Log.e("JSONUtils", "Error al añadir JSON con clave: " + e.getMessage());
+        }
+    }
+
     public static void modificarJSONObjectEnArchivo(JSONObject json, String nombreArchivo) {
         try {
             JSONObject jsonArchivo = cargarJSONDesdeArchivo(nombreArchivo);
@@ -94,16 +103,29 @@ public class JSONUtils {
                 jsonArchivo.put(idProducto, json);
                 escribirJSONDeNuevo(jsonArchivo, nombreArchivo);
             } else {
-                android.util.Log.e("JSONUtils", "Error: No se encontró el producto con ID " + idProducto + " en el archivo.");
+                android.util.Log.e("JSONUtils", "Error: No se encontró el objeto con ID " + idProducto + " en " + nombreArchivo);
             }
         } catch (JSONException e) {
             android.util.Log.e("JSONUtils", "Error al modificar JSON: " + e.getMessage());
         }
     }
 
+    public static void modificarJSONObjectEnArchivoConClave(JSONObject json, String nombreArchivo, String clave) {
+        try {
+            JSONObject jsonArchivo = cargarJSONDesdeArchivo(nombreArchivo);
+            if (jsonArchivo.has(clave)) {
+                jsonArchivo.put(clave, json);
+                escribirJSONDeNuevo(jsonArchivo, nombreArchivo);
+            } else {
+                android.util.Log.e("JSONUtils", "Error: No se encontró la clave " + clave + " en " + nombreArchivo);
+            }
+        } catch (JSONException e) {
+            android.util.Log.e("JSONUtils", "Error al modificar JSON con clave: " + e.getMessage());
+        }
+    }
+
     public static boolean crearArchivoSiNoExiste(String nombreArchivo) {
         File file = getFile(nombreArchivo);
-        // Crear si no existe O si está vacío
         if (!file.exists() || file.length() == 0) {
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write("{}".getBytes(StandardCharsets.UTF_8));
@@ -117,118 +139,88 @@ public class JSONUtils {
         return false;
     }
 
+    /**
+     * Productos base: solo datos base (sin cantidad ni estanteriaId)
+     */
     public static void mockearProductosBase() throws JSONException {
         String nombreArchivo = "productos.json";
         crearArchivoSiNoExiste(nombreArchivo);
 
-        // === Estanteria 1 - Electronica ===
-        JSONObject producto1 = new JSONObject();
-        producto1.put("id", 1);
-        producto1.put("nombre", "Cable USB-C");
-        producto1.put("cantidad", 50);
-        producto1.put("precio", 5.99);
-        producto1.put("estanteriaId", 1);
-
-        JSONObject producto2 = new JSONObject();
-        producto2.put("id", 2);
-        producto2.put("nombre", "Cargador 20W");
-        producto2.put("cantidad", 30);
-        producto2.put("precio", 15.99);
-        producto2.put("estanteriaId", 1);
-
-        JSONObject producto3 = new JSONObject();
-        producto3.put("id", 3);
-        producto3.put("nombre", "Auriculares Bluetooth");
-        producto3.put("cantidad", 20);
-        producto3.put("precio", 29.99);
-        producto3.put("estanteriaId", 1);
-
-        // === Estanteria 2 - Herramientas ===
-        JSONObject producto4 = new JSONObject();
-        producto4.put("id", 4);
-        producto4.put("nombre", "Destornillador Phillips");
-        producto4.put("cantidad", 100);
-        producto4.put("precio", 3.50);
-        producto4.put("estanteriaId", 2);
-
-        JSONObject producto5 = new JSONObject();
-        producto5.put("id", 5);
-        producto5.put("nombre", "Llave inglesa");
-        producto5.put("cantidad", 25);
-        producto5.put("precio", 12.00);
-        producto5.put("estanteriaId", 2);
-
-        JSONObject producto6 = new JSONObject();
-        producto6.put("id", 6);
-        producto6.put("nombre", "Cinta metrica 5m");
-        producto6.put("cantidad", 40);
-        producto6.put("precio", 4.99);
-        producto6.put("estanteriaId", 2);
-
-        // === Estanteria 3 - Limpieza ===
-        JSONObject producto7 = new JSONObject();
-        producto7.put("id", 7);
-        producto7.put("nombre", "Detergente 2L");
-        producto7.put("cantidad", 60);
-        producto7.put("precio", 6.50);
-        producto7.put("estanteriaId", 3);
-
-        JSONObject producto8 = new JSONObject();
-        producto8.put("id", 8);
-        producto8.put("nombre", "Escoba industrial");
-        producto8.put("cantidad", 15);
-        producto8.put("precio", 8.99);
-        producto8.put("estanteriaId", 3);
-
-        // === Estanteria 4 - Oficina ===
-        JSONObject producto9 = new JSONObject();
-        producto9.put("id", 9);
-        producto9.put("nombre", "Boligrafos pack 10");
-        producto9.put("cantidad", 200);
-        producto9.put("precio", 2.99);
-        producto9.put("estanteriaId", 4);
-
-        JSONObject producto10 = new JSONObject();
-        producto10.put("id", 10);
-        producto10.put("nombre", "Cuaderno A4");
-        producto10.put("cantidad", 150);
-        producto10.put("precio", 1.50);
-        producto10.put("estanteriaId", 4);
-
-        anadirJSONObjectAlArchivo(producto1, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto2, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto3, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto4, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto5, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto6, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto7, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto8, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto9, nombreArchivo);
-        anadirJSONObjectAlArchivo(producto10, nombreArchivo);
+        crearProductoBase(1, "Cable USB-C", 5.99);
+        crearProductoBase(2, "Cargador 20W", 15.99);
+        crearProductoBase(3, "Auriculares Bluetooth", 29.99);
+        crearProductoBase(4, "Destornillador Phillips", 3.50);
+        crearProductoBase(5, "Llave inglesa", 12.00);
+        crearProductoBase(6, "Cinta metrica 5m", 4.99);
+        crearProductoBase(7, "Detergente 2L", 6.50);
+        crearProductoBase(8, "Escoba industrial", 8.99);
+        crearProductoBase(9, "Boligrafos pack 10", 2.99);
+        crearProductoBase(10, "Cuaderno A4", 1.50);
 
         android.util.Log.d("JSONUtils", "10 Productos base creados en JSON");
+    }
+
+    private static void crearProductoBase(int id, String nombre, double precio) throws JSONException {
+        JSONObject prod = new JSONObject();
+        prod.put("id", id);
+        prod.put("nombre", nombre);
+        prod.put("precio", precio);
+        anadirJSONObjectAlArchivo(prod, "productos.json");
+    }
+
+    /**
+     * Relaciones producto-estanteria con cantidades
+     */
+    public static void mockearRelacionesBase() throws JSONException {
+        String nombreArchivo = "producto_estanteria.json";
+        crearArchivoSiNoExiste(nombreArchivo);
+
+        // Estanteria 1 - Electronica
+        crearRelacion(1, 1, 50, nombreArchivo);   // Cable USB-C → Estanteria A: 50
+        crearRelacion(2, 1, 30, nombreArchivo);   // Cargador 20W → Estanteria A: 30
+        crearRelacion(3, 1, 20, nombreArchivo);   // Auriculares → Estanteria A: 20
+
+        // Estanteria 2 - Herramientas
+        crearRelacion(4, 2, 100, nombreArchivo);  // Destornillador → Estanteria B: 100
+        crearRelacion(5, 2, 25, nombreArchivo);   // Llave inglesa → Estanteria B: 25
+        crearRelacion(6, 2, 40, nombreArchivo);   // Cinta metrica → Estanteria B: 40
+
+        // Estanteria 3 - Limpieza
+        crearRelacion(7, 3, 60, nombreArchivo);   // Detergente → Estanteria C: 60
+        crearRelacion(8, 3, 15, nombreArchivo);   // Escoba → Estanteria C: 15
+
+        // Estanteria 4 - Oficina
+        crearRelacion(9, 4, 200, nombreArchivo);  // Boligrafos → Estanteria D: 200
+        crearRelacion(10, 4, 150, nombreArchivo); // Cuaderno → Estanteria D: 150
+
+        android.util.Log.d("JSONUtils", "10 Relaciones producto-estantería creadas en JSON");
+    }
+
+    private static void crearRelacion(long productoId, long estanteriaId, int cantidad, String nombreArchivo) throws JSONException {
+        String clave = productoId + "_" + estanteriaId;
+        JSONObject rel = new JSONObject();
+        rel.put("productoId", productoId);
+        rel.put("estanteriaId", estanteriaId);
+        rel.put("cantidad", cantidad);
+        anadirJSONObjectAlArchivoConClave(rel, nombreArchivo, clave);
     }
 
     public static void mockearEstanteriasBase() throws JSONException {
         String nombreArchivo = "estanterias.json";
         crearArchivoSiNoExiste(nombreArchivo);
 
-        // Estanteria 1 - Electronica
         JSONObject estanteria1 = new JSONObject();
         estanteria1.put("id", 1);
         estanteria1.put("nombre", "Estanteria A - Electronica");
 
-        // Estanteria 2 - Herramientas
         JSONObject estanteria2 = new JSONObject();
         estanteria2.put("id", 2);
         estanteria2.put("nombre", "Estanteria B - Herramientas");
 
-        // Estanteria 3 - Limpieza
         JSONObject estanteria3 = new JSONObject();
         estanteria3.put("id", 3);
         estanteria3.put("nombre", "Estanteria C - Limpieza");
 
-        // Estanteria 4 - Oficina
         JSONObject estanteria4 = new JSONObject();
         estanteria4.put("id", 4);
         estanteria4.put("nombre", "Estanteria D - Oficina");

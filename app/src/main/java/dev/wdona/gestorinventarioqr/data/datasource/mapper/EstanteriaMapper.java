@@ -1,9 +1,12 @@
 package dev.wdona.gestorinventarioqr.data.datasource.mapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import dev.wdona.gestorinventarioqr.data.db.ProductoDao;
 import dev.wdona.gestorinventarioqr.data.entity.EstanteriaEntity;
-import dev.wdona.gestorinventarioqr.data.relation.RelacionEstanteriaProducto;
+import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
+import dev.wdona.gestorinventarioqr.data.entity.ProductoEstanteriaEntity;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
@@ -31,22 +34,38 @@ public class EstanteriaMapper {
         );
     }
 
-    public static Estanteria toDomain(RelacionEstanteriaProducto relacion) {
-        if (relacion == null || relacion.estanteria == null) {
+    /**
+     * Convierte una EstanteriaEntity + sus relaciones ProductoEstanteria a dominio,
+     * resolviendo cada producto desde ProductoDao.
+     */
+    public static Estanteria toDomainConProductos(EstanteriaEntity estanteriaEntity,
+                                                   List<ProductoEstanteriaEntity> relaciones,
+                                                   ProductoDao productoDao) {
+        if (estanteriaEntity == null) {
             return null;
         }
+        Estanteria estanteria = toDomain(estanteriaEntity);
+        List<Producto> productos = new ArrayList<>();
 
-        EstanteriaEntity estanteriaEntity = relacion.estanteria;
-        List<Producto> productos = ProductoMapper.toDomainList(relacion.productos, toDomain(estanteriaEntity));
+        if (relaciones != null) {
+            for (ProductoEstanteriaEntity rel : relaciones) {
+                ProductoEntity prodEntity = productoDao.getProductoById(rel.getProductoId());
+                if (prodEntity != null) {
+                    Producto producto = ProductoMapper.toDomain(prodEntity, estanteria, rel.getCantidad());
+                    productos.add(producto);
+                }
+            }
+        }
 
-        return toDomain(estanteriaEntity, productos);
+        estanteria.setProductos(productos);
+        return estanteria;
     }
 
     public static List<Estanteria> toDomain(List<EstanteriaEntity> estanteriaEntities) {
         if (estanteriaEntities == null) {
             return null;
         }
-        List<Estanteria> estanterias = new java.util.ArrayList<>();
+        List<Estanteria> estanterias = new ArrayList<>();
         for (EstanteriaEntity entity : estanteriaEntities) {
             estanterias.add(toDomain(entity));
         }

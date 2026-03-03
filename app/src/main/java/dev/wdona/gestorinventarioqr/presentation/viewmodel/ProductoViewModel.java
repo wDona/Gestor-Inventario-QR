@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.List;
 
-import dev.wdona.gestorinventarioqr.data.relation.RelacionEstanteriaProducto;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.repository.ProductoRepository;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
@@ -25,10 +24,8 @@ public class ProductoViewModel extends ViewModel {
         if (unidadesSumadas <= 0) {
             System.out.println("Error: No se pueden agregar unidades negativas o cero.");
             return false;
-        } else {
-            repository.addUndsProduct(producto, unidadesSumadas);
         }
-
+        repository.addUndsProduct(producto, unidadesSumadas);
         return true;
     }
 
@@ -36,13 +33,12 @@ public class ProductoViewModel extends ViewModel {
         if (unidadesRestadas <= 0) {
             System.out.println("Error: No se pueden restar unidades negativas o cero.");
             return false;
-        } else if (producto.getCantidad() < unidadesRestadas) {
+        }
+        if (producto.getCantidad() < unidadesRestadas) {
             System.out.println("Error: No se pueden restar más unidades de las que hay en stock.");
             return false;
-        } else {
-            repository.removeUndsProduct(producto, unidadesRestadas);
         }
-
+        repository.removeUndsProduct(producto, unidadesRestadas);
         return true;
     }
 
@@ -50,8 +46,20 @@ public class ProductoViewModel extends ViewModel {
         repository.assignProductToEstanteria(producto, estanteria);
     }
 
+    public void moverCantidad(Long productoId, Long estanteriaOrigenId, Long estanteriaDestinoId, int cantidad) throws Exception {
+        repository.moverCantidad(productoId, estanteriaOrigenId, estanteriaDestinoId, cantidad);
+    }
+
     public Producto getProductoById(Long id) {
         return repository.getProductoById(id);
+    }
+
+    public Producto getProductoEnEstanteria(Long productoId, Long estanteriaId) {
+        return repository.getProductoEnEstanteria(productoId, estanteriaId);
+    }
+
+    public List<Producto> getUbicacionesProducto(Long productoId) {
+        return repository.getUbicacionesProducto(productoId);
     }
 
     public void sincronizar(Producto... productos) {

@@ -1,22 +1,21 @@
 package dev.wdona.gestorinventarioqr.data.relation;
 
-import androidx.room.Embedded;
-import androidx.room.Relation;
-
-import java.util.List;
-
 import dev.wdona.gestorinventarioqr.data.entity.EstanteriaEntity;
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
+import dev.wdona.gestorinventarioqr.data.entity.ProductoEstanteriaEntity;
 
+/**
+ * Clase auxiliar para pasar datos de la relación producto-estantería.
+ * Ya no usa @Relation de Room, se construye manualmente.
+ */
 public class RelacionEstanteriaProducto {
-    @Embedded
     public EstanteriaEntity estanteria;
+    public ProductoEntity producto;
+    public ProductoEstanteriaEntity relacion; // contiene la cantidad
 
-    @Relation(
-            parentColumn = "id",
-            entityColumn = "FK_estanteriaId"
-    )
-    public List<ProductoEntity> productos;
-
-
+    public RelacionEstanteriaProducto(EstanteriaEntity estanteria, ProductoEntity producto, ProductoEstanteriaEntity relacion) {
+        this.estanteria = estanteria;
+        this.producto = producto;
+        this.relacion = relacion;
+    }
 }

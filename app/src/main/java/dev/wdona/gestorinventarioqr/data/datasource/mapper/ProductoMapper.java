@@ -5,13 +5,17 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.wdona.gestorinventarioqr.data.db.EstanteriaDao;
 import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
+import dev.wdona.gestorinventarioqr.data.entity.ProductoEstanteriaEntity;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
 public class ProductoMapper {
-    public static Producto toDomain(ProductoEntity entity, Estanteria estanteria) {
+
+    /**
+     * Convierte ProductoEntity + contexto de estantería a dominio
+     */
+    public static Producto toDomain(ProductoEntity entity, Estanteria estanteria, int cantidad) {
         if (entity == null) {
             return null;
         }
@@ -19,38 +23,23 @@ public class ProductoMapper {
                 entity.getId(),
                 entity.getNombre(),
                 entity.getPrecio(),
-                entity.getCantidad(),
+                cantidad,
                 estanteria
         );
     }
 
-    public static List<Producto> toDomainList(List<ProductoEntity> entities, Estanteria estanteria) {
-        if (entities == null || estanteria == null) {
+    /**
+     * Convierte ProductoEntity a dominio sin contexto de estantería
+     */
+    public static Producto toDomain(ProductoEntity entity) {
+        if (entity == null) {
             return null;
         }
-        List<Producto> productos = new ArrayList<>();
-        for (int i = 0; i < entities.size(); i++) {
-            productos.add(toDomain(entities.get(i), estanteria));
-        }
-        return productos;
-    }
-
-    /**
-     * Convierte una lista de ProductoEntity a Producto obteniendo la estantería de cada uno
-     */
-    public static List<Producto> toDomainList(List<ProductoEntity> entities, EstanteriaDao estanteriaDao) {
-        if (entities == null) {
-            return new ArrayList<>();
-        }
-        List<Producto> productos = new ArrayList<>();
-        for (ProductoEntity entity : entities) {
-            Estanteria estanteria = null;
-            if (entity.getFK_estanteriaId() != null) {
-                estanteria = EstanteriaMapper.toDomain(estanteriaDao.getEstanteriaById(entity.getFK_estanteriaId()));
-            }
-            productos.add(toDomain(entity, estanteria));
-        }
-        return productos;
+        return new Producto(
+                entity.getId(),
+                entity.getNombre(),
+                entity.getPrecio()
+        );
     }
 
     public static ProductoEntity toEntity(Producto producto) {
@@ -61,11 +50,18 @@ public class ProductoMapper {
         entity.setId(producto.getId());
         entity.setNombre(producto.getNombre());
         entity.setPrecio(producto.getPrecio());
-        entity.setCantidad(producto.getCantidad());
-        if (producto.getEstanteria() != null) {
-            entity.setFK_estanteriaId(producto.getEstanteria().getId());
-        }
         return entity;
+    }
+
+    public static ProductoEstanteriaEntity toRelacionEntity(Producto producto) {
+        if (producto == null || producto.getEstanteria() == null) {
+            return null;
+        }
+        ProductoEstanteriaEntity pe = new ProductoEstanteriaEntity();
+        pe.setProductoId(producto.getId());
+        pe.setEstanteriaId(producto.getEstanteria().getId());
+        pe.setCantidad(producto.getCantidad());
+        return pe;
     }
 
     public static JSONObject toJSON(Producto producto) {
@@ -100,7 +96,7 @@ public class ProductoMapper {
             double precio = json.optDouble("precio", 0);
             int cantidad = json.optInt("cantidad", 0);
             Long estanteriaId = json.has("estanteriaId") && !json.isNull("estanteriaId") ? json.getLong("estanteriaId") : null;
-            Estanteria estanteria = new Estanteria(estanteriaId, null, null);
+            Estanteria estanteria = estanteriaId != null ? new Estanteria(estanteriaId, null) : null;
 
             return new Producto(id, nombre, precio, cantidad, estanteria);
         } catch (Exception e) {

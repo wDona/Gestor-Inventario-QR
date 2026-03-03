@@ -61,8 +61,8 @@ public class App extends Application {
             AppDatabase appDatabase = AppDatabase.getDatabase(getApplicationContext());
             android.util.Log.d(TAG, "AppDatabase obtenida");
 
-            EstanteriaLocalDataSourceImpl estanteriaLocalDataSource = new EstanteriaLocalDataSourceImpl(appDatabase.estanteriaDao());
-            ProductoLocalDataSourceImpl productoLocalDataSource = new ProductoLocalDataSourceImpl(appDatabase.productoDao(), appDatabase.estanteriaDao());
+            EstanteriaLocalDataSourceImpl estanteriaLocalDataSource = new EstanteriaLocalDataSourceImpl(appDatabase.estanteriaDao(), appDatabase.productoDao());
+            ProductoLocalDataSourceImpl productoLocalDataSource = new ProductoLocalDataSourceImpl(appDatabase.productoDao(), appDatabase.estanteriaDao(), appDatabase.productoEstanteriaDao());
             OperacionLocalDataSourceImpl operacionLocalDataSource = new OperacionLocalDataSourceImpl(appDatabase.operacionDao());
             android.util.Log.d(TAG, "LocalDataSources creados");
 

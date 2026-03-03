@@ -64,6 +64,8 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     private Producto currentProducto;
     private boolean isAsignarProductoAEstanteria = false;
     private boolean isMoverProductoAqui = false;  // Nuevo modo: mover producto a estantería actual
+    private boolean isMoverCantidad = false;     // Nuevo modo: mover cantidad específica a estantería
+    private int cantidadAMoverGlobal = 0;        // Cantidad específica a mover
     private boolean syncOperacionesPendiente = false; // Para controlar sincronización al volver a online
     private boolean syncProductosPendiente = false; // Para controlar sincronización al volver a online
     private boolean syncedOperacionesPrincipio = false;
@@ -173,8 +175,8 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
 
             AppDatabase appDatabase = AppDatabase.getDatabase(getApplicationContext());
 
-            EstanteriaLocalDataSourceImpl estanteriaLocalDataSource = new EstanteriaLocalDataSourceImpl(appDatabase.estanteriaDao());
-            ProductoLocalDataSourceImpl productoLocalDataSource = new ProductoLocalDataSourceImpl(appDatabase.productoDao(), appDatabase.estanteriaDao());
+            EstanteriaLocalDataSourceImpl estanteriaLocalDataSource = new EstanteriaLocalDataSourceImpl(appDatabase.estanteriaDao(), appDatabase.productoDao());
+            ProductoLocalDataSourceImpl productoLocalDataSource = new ProductoLocalDataSourceImpl(appDatabase.productoDao(), appDatabase.estanteriaDao(), appDatabase.productoEstanteriaDao());
 
             EstanteriaApiImpl estanteriaApi = new EstanteriaApiImpl();
             ProductoApiImpl productoApi = new ProductoApiImpl();
@@ -463,6 +465,21 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                     if (estanteria != null) {
                         currentEstanteria = estanteria;
 
+                        // Modo: mover cantidad específica a estantería escaneada
+                        if (isMoverCantidad) {
+                            if (currentProducto == null || cantidadAMoverGlobal <= 0) {
+                                Toast.makeText(this, "Error en datos de movimiento. Intenta de nuevo.", Toast.LENGTH_SHORT).show();
+                                estadoMoverCantidadFalse();
+                                return;
+                            }
+
+                            mostrarConfirmacionDialog(
+                                    this::ejecutarMovimientoCantidad,
+                                    "¿Mover " + cantidadAMoverGlobal + " unidades de " + currentProducto.getNombre() + " a " + estanteria.getNombre() + "?"
+                            );
+                            return;
+                        }
+
                         if (isAsignarProductoAEstanteria) {
                             if (currentProducto == null) {
                                 Toast.makeText(this, "No hay producto escaneado para asignar a la estantería. Realiza de nuevo la operacion", Toast.LENGTH_SHORT).show();
@@ -510,6 +527,14 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                 Long productoId = Long.parseLong(id);
                 Producto producto = productoViewModel.getProductoById(productoId);
 
+                // Si estamos en modo mover aquí, obtener ubicaciones reales
+                final List<Producto> ubicaciones;
+                if (isMoverProductoAqui && producto != null) {
+                    ubicaciones = productoViewModel.getUbicacionesProducto(productoId);
+                } else {
+                    ubicaciones = null;
+                }
+
                 runOnUiThread(() -> {
                     if (producto != null) {
                         currentProducto = producto;
@@ -522,10 +547,7 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                                 return;
                             }
                             Toast.makeText(this, "Producto escaneado: " + producto.getNombre(), Toast.LENGTH_SHORT).show();
-                            mostrarConfirmacionDialog(
-                                    this::moverProductoAEstanteriaActual,
-                                    "¿Mover " + producto.getNombre() + " a " + currentEstanteria.getNombre() + "?"
-                            );
+                            showDialogCantidadMoverAqui(producto, ubicaciones);
                         }
                         // Modo: asignar producto a estantería (escanear estantería después)
                         else if (isAsignarProductoAEstanteria) {
@@ -552,7 +574,7 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     }
 
     private void showProductoOptionsDialog(Producto producto) {
-        String[] opciones = {"Añadir unidades", "Quitar unidades", "Asignar a estantería", "Mostrar detalles", "Cancelar"};
+        String[] opciones = {"Añadir unidades", "Quitar unidades", "Mover cantidad a estantería", "Mostrar detalles", "Cancelar"};
 
         new AlertDialog.Builder(this)
                 .setTitle(producto.getNombre())
@@ -565,10 +587,7 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                             showCantidadDialog(producto, false);
                             break;
                         case 2:
-                            Toast.makeText(this, "Escanea una estanteria", Toast.LENGTH_SHORT).show();
-                            currentProducto = producto;
-                            estadoAsignarProductoAEstanteriaTrue();
-                            mostrarMensajeCambioEstanteria();
+                            showMoverCantidadDialog(producto);
                             break;
                         case 3:
                             String info = "ID: " + producto.getId() +
@@ -584,6 +603,55 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                             break;
                         case 4:
                             break;
+                    }
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void showMoverCantidadDialog(Producto producto) {
+        if (producto.getCantidad() <= 0) {
+            Toast.makeText(this, "El producto no tiene unidades para mover", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setHint("Cantidad a mover (máx: " + producto.getCantidad() + ")");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Mover cantidad de " + producto.getNombre())
+                .setMessage("Cantidad disponible: " + producto.getCantidad())
+                .setView(input)
+                .setPositiveButton("Continuar", (dialog, which) -> {
+                    String cantidadStr = input.getText().toString().trim();
+                    if (cantidadStr.isEmpty()) {
+                        Toast.makeText(this, "Ingresa una cantidad", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    try {
+                        int cantidadAMover = Integer.parseInt(cantidadStr);
+
+                        if (cantidadAMover <= 0) {
+                            Toast.makeText(this, "La cantidad debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        if (cantidadAMover > producto.getCantidad()) {
+                            Toast.makeText(this, "No hay suficiente cantidad (disponible: " + producto.getCantidad() + ")", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // Guardar producto y cantidad para mover
+                        currentProducto = producto;
+                        cantidadAMoverGlobal = cantidadAMover;
+                        estadoMoverCantidadTrue();
+
+                        Toast.makeText(this, "Escanea la estantería destino para mover " + cantidadAMover + " unidades", Toast.LENGTH_SHORT).show();
+
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(this, "Cantidad inválida", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setNegativeButton("Cancelar", null)
@@ -644,26 +712,89 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                 .show();
     }
 
-
-    private void asignarProductoEscaneadoAEstanteriaEscaneada() {
+    private void ejecutarMovimientoCantidad() {
         final Producto producto = currentProducto;
-        final Estanteria estanteria = currentEstanteria;
+        final Estanteria estanteriaDestino = currentEstanteria;
+        final int cantidad = cantidadAMoverGlobal;
 
-        if (producto == null || estanteria == null) {
-            Toast.makeText(this, "Error: producto o estantería es null", Toast.LENGTH_SHORT).show();
-            estadoAsignarProductoAEstanteriaFalse();
+        if (producto == null || estanteriaDestino == null || cantidad <= 0) {
+            Toast.makeText(this, "Error en datos de movimiento", Toast.LENGTH_SHORT).show();
+            estadoMoverCantidadFalse();
+            return;
+        }
+
+        // Necesitamos la estantería origen del producto
+        final Estanteria estanteriaOrigen = producto.getEstanteria();
+        if (estanteriaOrigen == null) {
+            Toast.makeText(this, "El producto no tiene estantería de origen", Toast.LENGTH_SHORT).show();
+            estadoMoverCantidadFalse();
             return;
         }
 
         executor.execute(() -> {
             try {
-                productoViewModel.assignProductToEstanteria(producto, estanteria);
+                productoViewModel.moverCantidad(
+                        producto.getId(),
+                        estanteriaOrigen.getId(),
+                        estanteriaDestino.getId(),
+                        cantidad
+                );
+
+                runOnUiThread(() -> {
+                    Toast.makeText(this, cantidad + " unidades de " + producto.getNombre() + " movidas a " + estanteriaDestino.getNombre(), Toast.LENGTH_SHORT).show();
+                    estadoMoverCantidadFalse();
+                    actualizarProductosEnEstanteria();
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("MainScan", "Error en movimiento de cantidad: " + e.getMessage());
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Error al mover cantidad: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    estadoMoverCantidadFalse();
+                });
+            }
+        });
+    }
+
+    private void asignarProductoEscaneadoAEstanteriaEscaneada() {
+        final Producto producto = currentProducto;
+        final Estanteria estanteriaDestino = currentEstanteria;
+
+        if (producto == null || estanteriaDestino == null) {
+            Toast.makeText(this, "Error: producto o estantería es null", Toast.LENGTH_SHORT).show();
+            estadoAsignarProductoAEstanteriaFalse();
+            return;
+        }
+
+        final Estanteria estanteriaOrigen = producto.getEstanteria();
+        if (estanteriaOrigen == null) {
+            Toast.makeText(this, "El producto no tiene estantería de origen", Toast.LENGTH_SHORT).show();
+            estadoAsignarProductoAEstanteriaFalse();
+            return;
+        }
+
+        if (estanteriaOrigen.getId().equals(estanteriaDestino.getId())) {
+            Toast.makeText(this, "El producto ya está en esta estantería", Toast.LENGTH_SHORT).show();
+            estadoAsignarProductoAEstanteriaFalse();
+            return;
+        }
+
+        final int cantidadAMover = producto.getCantidad();
+
+        executor.execute(() -> {
+            try {
+                productoViewModel.moverCantidad(
+                        producto.getId(),
+                        estanteriaOrigen.getId(),
+                        estanteriaDestino.getId(),
+                        cantidadAMover
+                );
                 if (currentEstanteria != null) {
                     actualizarProductosEnEstanteria();
                 }
 
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Producto asignado a " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, cantidadAMover + " uds de " + producto.getNombre() + " movidas a " + estanteriaDestino.getNombre(), Toast.LENGTH_SHORT).show();
                     isAsignarProductoAEstanteria = false;
                     currentProducto = null;
                     currentEstanteria = null;
@@ -683,6 +814,17 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
         } else {
             Toast.makeText(this, "Asignar estanteria ha cambiado de estado", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void estadoMoverCantidadTrue() {
+        isMoverCantidad = true;
+        tvStatus.setText("Escanea estantería destino para mover " + cantidadAMoverGlobal + " unidades de " + currentProducto.getNombre());
+    }
+
+    private void estadoMoverCantidadFalse() {
+        isMoverCantidad = false;
+        cantidadAMoverGlobal = 0;
+        tvStatus.setText("Listo para escanear");
     }
 
     private void estadoAsignarProductoAEstanteriaTrue() {
@@ -724,37 +866,120 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
         currentProducto = null;
     }
 
-    private void moverProductoAEstanteriaActual() {
-        final Producto producto = currentProducto;
-        final Estanteria estanteria = currentEstanteria;
+    private void showDialogCantidadMoverAqui(Producto producto, List<Producto> ubicaciones) {
+        final Estanteria estanteriaDestino = currentEstanteria;
 
-        if (producto == null || estanteria == null) {
-            Toast.makeText(this, "Error: producto o estantería es null", Toast.LENGTH_SHORT).show();
+        if (ubicaciones == null || ubicaciones.isEmpty()) {
+            Toast.makeText(this, "El producto no está en ninguna estantería", Toast.LENGTH_SHORT).show();
             cancelarModoMoverProductoAqui();
             return;
         }
 
-        executor.execute(() -> {
-            try {
-                productoViewModel.assignProductToEstanteria(producto, estanteria);
-
-                runOnUiThread(() -> {
-                    Toast.makeText(this, producto.getNombre() + " movido a " + estanteria.getNombre(), Toast.LENGTH_SHORT).show();
-                    isMoverProductoAqui = false;
-                    currentProducto = null;
-                    tvStatus.setText("Listo para escanear");
-                });
-
-                // Actualizar lista de productos de la estantería
-                actualizarProductosEnEstanteria();
-
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(this, "Error al mover producto: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    cancelarModoMoverProductoAqui();
-                });
+        // Filtrar ubicaciones: quitar la estantería destino (no tiene sentido mover de A a A)
+        List<Producto> origenesDisponibles = new ArrayList<>();
+        for (Producto ub : ubicaciones) {
+            if (ub.getEstanteria() != null && !ub.getEstanteria().getId().equals(estanteriaDestino.getId())) {
+                origenesDisponibles.add(ub);
             }
-        });
+        }
+
+        if (origenesDisponibles.isEmpty()) {
+            Toast.makeText(this, "El producto ya está completamente en esta estantería", Toast.LENGTH_SHORT).show();
+            cancelarModoMoverProductoAqui();
+            return;
+        }
+
+        // Si hay un solo origen, ir directo al diálogo de cantidad
+        if (origenesDisponibles.size() == 1) {
+            showInputCantidadMoverAqui(origenesDisponibles.get(0), estanteriaDestino);
+        } else {
+            // Múltiples orígenes: dejar elegir de cuál estantería mover
+            String[] opciones = new String[origenesDisponibles.size()];
+            for (int i = 0; i < origenesDisponibles.size(); i++) {
+                Producto ub = origenesDisponibles.get(i);
+                opciones[i] = ub.getEstanteria().getNombre() + " (" + ub.getCantidad() + " uds)";
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("¿De qué estantería mover " + producto.getNombre() + "?")
+                    .setItems(opciones, (dialog, which) -> {
+                        showInputCantidadMoverAqui(origenesDisponibles.get(which), estanteriaDestino);
+                    })
+                    .setNegativeButton("Cancelar", (dialog, which) -> cancelarModoMoverProductoAqui())
+                    .setCancelable(false)
+                    .show();
+        }
+    }
+
+    private void showInputCantidadMoverAqui(Producto productoEnOrigen, Estanteria estanteriaDestino) {
+        int cantidadDisponible = productoEnOrigen.getCantidad();
+        Estanteria estanteriaOrigen = productoEnOrigen.getEstanteria();
+
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setHint("Cantidad (máx: " + cantidadDisponible + ")");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Mover " + productoEnOrigen.getNombre())
+                .setMessage("De: " + estanteriaOrigen.getNombre() + " (" + cantidadDisponible + " uds)\nA: " + estanteriaDestino.getNombre())
+                .setView(input)
+                .setPositiveButton("Mover", (dialog, which) -> {
+                    String cantidadStr = input.getText().toString().trim();
+                    if (cantidadStr.isEmpty()) {
+                        Toast.makeText(this, "Ingresa una cantidad", Toast.LENGTH_SHORT).show();
+                        cancelarModoMoverProductoAqui();
+                        return;
+                    }
+
+                    try {
+                        int cantidad = Integer.parseInt(cantidadStr);
+
+                        if (cantidad <= 0) {
+                            Toast.makeText(this, "La cantidad debe ser mayor a 0", Toast.LENGTH_SHORT).show();
+                            cancelarModoMoverProductoAqui();
+                            return;
+                        }
+
+                        if (cantidad > cantidadDisponible) {
+                            Toast.makeText(this, "Solo hay " + cantidadDisponible + " uds en " + estanteriaOrigen.getNombre(), Toast.LENGTH_SHORT).show();
+                            cancelarModoMoverProductoAqui();
+                            return;
+                        }
+
+                        mostrarConfirmacionDialog(() -> {
+                            executor.execute(() -> {
+                                try {
+                                    productoViewModel.moverCantidad(
+                                            productoEnOrigen.getId(),
+                                            estanteriaOrigen.getId(),
+                                            estanteriaDestino.getId(),
+                                            cantidad
+                                    );
+
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, cantidad + " uds de " + productoEnOrigen.getNombre() + " movidas a " + estanteriaDestino.getNombre(), Toast.LENGTH_SHORT).show();
+                                        cancelarModoMoverProductoAqui();
+                                    });
+
+                                    actualizarProductosEnEstanteria();
+
+                                } catch (Exception e) {
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, "Error al mover: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        cancelarModoMoverProductoAqui();
+                                    });
+                                }
+                            });
+                        }, "¿Mover " + cantidad + " uds de " + productoEnOrigen.getNombre() + "\nde " + estanteriaOrigen.getNombre() + "\na " + estanteriaDestino.getNombre() + "?");
+
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(this, "Cantidad inválida", Toast.LENGTH_SHORT).show();
+                        cancelarModoMoverProductoAqui();
+                    }
+                })
+                .setNegativeButton("Cancelar", (dialog, which) -> cancelarModoMoverProductoAqui())
+                .setCancelable(false)
+                .show();
     }
 
     private void actualizarProductosEnEstanteria() {
@@ -780,11 +1005,13 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
                     ejecutarOperacion.run();
                 })
                 .setNegativeButton("Cancelar", (dialog, which) -> {
-                    // Acción al cancelar (opcional)
+                    // Acción al cancelar - resetear todos los estados
                     dialog.dismiss();
                     currentProducto = null;
                     currentEstanteria = null;
                     isAsignarProductoAEstanteria = false;
+                    estadoMoverCantidadFalse();
+                    cancelarModoMoverProductoAqui();
                 })
                 .setCancelable(false)
                 .show();

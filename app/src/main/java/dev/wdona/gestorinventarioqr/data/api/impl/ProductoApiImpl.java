@@ -30,7 +30,7 @@ public class ProductoApiImpl implements ProductoApi {
 
     @Override
     public void removeUndsProduct(Producto producto, int cantidad) throws JSONException {
-        if (producto == null || cantidad <= 0 || producto.getCantidad() - cantidad < 0) {
+        if (producto == null || cantidad <= 0) {
             System.out.println("Error, cantidad no válida o producto nulo");
             throw new IllegalArgumentException("Error, cantidad no válida o producto nulo");
         }
