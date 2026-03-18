@@ -75,7 +75,7 @@ public class JSONUtils {
     public static void anadirJSONObjectAlArchivo(JSONObject json, String nombreArchivo) {
         try {
             JSONObject jsonArchivo = cargarJSONDesdeArchivo(nombreArchivo);
-            String idProducto = String.valueOf(json.getInt("id"));
+            String idProducto = String.valueOf(json.get("id"));
             jsonArchivo.put(idProducto, json);
             escribirJSONDeNuevo(jsonArchivo, nombreArchivo);
             android.util.Log.d("JSONUtils", "Añadido objeto con id " + idProducto + " a " + nombreArchivo);
@@ -98,7 +98,7 @@ public class JSONUtils {
     public static void modificarJSONObjectEnArchivo(JSONObject json, String nombreArchivo) {
         try {
             JSONObject jsonArchivo = cargarJSONDesdeArchivo(nombreArchivo);
-            String idProducto = String.valueOf(json.getInt("id"));
+            String idProducto = String.valueOf(json.get("id"));
             if (jsonArchivo.has(idProducto)) {
                 jsonArchivo.put(idProducto, json);
                 escribirJSONDeNuevo(jsonArchivo, nombreArchivo);
@@ -146,21 +146,22 @@ public class JSONUtils {
         String nombreArchivo = "productos.json";
         crearArchivoSiNoExiste(nombreArchivo);
 
-        crearProductoBase(1, "Cable USB-C", 5.99);
-        crearProductoBase(2, "Cargador 20W", 15.99);
-        crearProductoBase(3, "Auriculares Bluetooth", 29.99);
-        crearProductoBase(4, "Destornillador Phillips", 3.50);
-        crearProductoBase(5, "Llave inglesa", 12.00);
-        crearProductoBase(6, "Cinta metrica 5m", 4.99);
-        crearProductoBase(7, "Detergente 2L", 6.50);
-        crearProductoBase(8, "Escoba industrial", 8.99);
-        crearProductoBase(9, "Boligrafos pack 10", 2.99);
-        crearProductoBase(10, "Cuaderno A4", 1.50);
+        crearProductoBase("PROD-1", "Cable USB-C", 5.99);
+        crearProductoBase("PROD-2", "Cargador 20W", 15.99);
+        crearProductoBase("PROD-3", "Auriculares Bluetooth", 29.99);
+        crearProductoBase("PROD-4", "Destornillador Phillips", 3.50);
+        crearProductoBase("PROD-5", "Llave inglesa", 12.00);
+        crearProductoBase("PROD-6", "Cinta metrica 5m", 4.99);
+        crearProductoBase("PROD-7", "Detergente 2L", 6.50);
+        crearProductoBase("PROD-8", "Escoba industrial", 8.99);
+        crearProductoBase("PROD-9", "Boligrafos pack 10", 2.99);
+        crearProductoBase("PROD-10", "Cuaderno A4", 1.50);
+        crearProductoBase("QRTB125KHZ", "Tarjeta RFID 125KHz", 2.50);
 
-        android.util.Log.d("JSONUtils", "10 Productos base creados en JSON");
+        android.util.Log.d("JSONUtils", "11 Productos base creados en JSON");
     }
 
-    private static void crearProductoBase(int id, String nombre, double precio) throws JSONException {
+    private static void crearProductoBase(String id, String nombre, double precio) throws JSONException {
         JSONObject prod = new JSONObject();
         prod.put("id", id);
         prod.put("nombre", nombre);
@@ -176,27 +177,28 @@ public class JSONUtils {
         crearArchivoSiNoExiste(nombreArchivo);
 
         // Estanteria 1 - Electronica
-        crearRelacion(1, 1, 50, nombreArchivo);   // Cable USB-C → Estanteria A: 50
-        crearRelacion(2, 1, 30, nombreArchivo);   // Cargador 20W → Estanteria A: 30
-        crearRelacion(3, 1, 20, nombreArchivo);   // Auriculares → Estanteria A: 20
+        crearRelacion("PROD-1", "EST-1", 50, nombreArchivo);   // Cable USB-C → Estanteria A: 50
+        crearRelacion("PROD-2", "EST-1", 30, nombreArchivo);   // Cargador 20W → Estanteria A: 30
+        crearRelacion("PROD-3", "EST-1", 20, nombreArchivo);   // Auriculares → Estanteria A: 20
 
         // Estanteria 2 - Herramientas
-        crearRelacion(4, 2, 100, nombreArchivo);  // Destornillador → Estanteria B: 100
-        crearRelacion(5, 2, 25, nombreArchivo);   // Llave inglesa → Estanteria B: 25
-        crearRelacion(6, 2, 40, nombreArchivo);   // Cinta metrica → Estanteria B: 40
+        crearRelacion("PROD-4", "EST-2", 100, nombreArchivo);  // Destornillador → Estanteria B: 100
+        crearRelacion("PROD-5", "EST-2", 25, nombreArchivo);   // Llave inglesa → Estanteria B: 25
+        crearRelacion("PROD-6", "EST-2", 40, nombreArchivo);   // Cinta metrica → Estanteria B: 40
 
         // Estanteria 3 - Limpieza
-        crearRelacion(7, 3, 60, nombreArchivo);   // Detergente → Estanteria C: 60
-        crearRelacion(8, 3, 15, nombreArchivo);   // Escoba → Estanteria C: 15
+        crearRelacion("PROD-7", "EST-3", 60, nombreArchivo);   // Detergente → Estanteria C: 60
+        crearRelacion("PROD-8", "EST-3", 15, nombreArchivo);   // Escoba → Estanteria C: 15
+        crearRelacion("QRTB125KHZ", "EST-3", 100, nombreArchivo); // Tarjeta RFID → Estanteria C: 100
 
         // Estanteria 4 - Oficina
-        crearRelacion(9, 4, 200, nombreArchivo);  // Boligrafos → Estanteria D: 200
-        crearRelacion(10, 4, 150, nombreArchivo); // Cuaderno → Estanteria D: 150
+        crearRelacion("PROD-9", "EST-4", 200, nombreArchivo);  // Boligrafos → Estanteria D: 200
+        crearRelacion("PROD-10", "EST-4", 150, nombreArchivo); // Cuaderno → Estanteria D: 150
 
-        android.util.Log.d("JSONUtils", "10 Relaciones producto-estantería creadas en JSON");
+        android.util.Log.d("JSONUtils", "Relaciones producto-estantería creadas en JSON");
     }
 
-    private static void crearRelacion(long productoId, long estanteriaId, int cantidad, String nombreArchivo) throws JSONException {
+    private static void crearRelacion(String productoId, String estanteriaId, int cantidad, String nombreArchivo) throws JSONException {
         String clave = productoId + "_" + estanteriaId;
         JSONObject rel = new JSONObject();
         rel.put("productoId", productoId);
@@ -210,19 +212,19 @@ public class JSONUtils {
         crearArchivoSiNoExiste(nombreArchivo);
 
         JSONObject estanteria1 = new JSONObject();
-        estanteria1.put("id", 1);
+        estanteria1.put("id", "EST-1");
         estanteria1.put("nombre", "Estanteria A - Electronica");
 
         JSONObject estanteria2 = new JSONObject();
-        estanteria2.put("id", 2);
+        estanteria2.put("id", "EST-2");
         estanteria2.put("nombre", "Estanteria B - Herramientas");
 
         JSONObject estanteria3 = new JSONObject();
-        estanteria3.put("id", 3);
+        estanteria3.put("id", "EST-3");
         estanteria3.put("nombre", "Estanteria C - Limpieza");
 
         JSONObject estanteria4 = new JSONObject();
-        estanteria4.put("id", 4);
+        estanteria4.put("id", "EST-4");
         estanteria4.put("nombre", "Estanteria D - Oficina");
 
         anadirJSONObjectAlArchivo(estanteria1, nombreArchivo);

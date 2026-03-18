@@ -28,6 +28,7 @@ public class QRIdentifier {
      * - Estantería: "EST-{id}" o "ESTANTERIA-{id}"
      * - Producto: "PROD-{id}" o "PRODUCTO-{id}"
      */
+    @Deprecated
     public static QRResult identify(String qrData) {
         if (qrData == null || qrData.isEmpty()) {
             return new QRResult(QRType.UNKNOWN, null, qrData);

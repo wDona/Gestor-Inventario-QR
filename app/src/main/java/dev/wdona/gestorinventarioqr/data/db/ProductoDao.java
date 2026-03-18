@@ -13,7 +13,7 @@ import dev.wdona.gestorinventarioqr.data.entity.ProductoEntity;
 @Dao
 public interface ProductoDao {
     @Query("SELECT * FROM Producto WHERE id = :id")
-    ProductoEntity getProductoById(Long id);
+    ProductoEntity getProductoById(String id);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertProducto(ProductoEntity productoEntity);
@@ -24,6 +24,6 @@ public interface ProductoDao {
     @Query("SELECT * FROM Producto")
     List<ProductoEntity> getAllProductos();
 
-    @Update
-    void updateAll(ProductoEntity... productoEntities);
+    @Query("DELETE FROM Producto WHERE id = :id")
+    void deleteProducto(String id);
 }

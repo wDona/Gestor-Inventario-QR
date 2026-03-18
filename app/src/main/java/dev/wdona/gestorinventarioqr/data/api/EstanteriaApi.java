@@ -4,7 +4,8 @@ import dev.wdona.gestorinventarioqr.data.relation.RelacionEstanteriaProducto;
 import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 
 public interface EstanteriaApi {
-    Estanteria getEstanteriaById(Long id);
-    Estanteria getEstanteriaConProductosById(Long idEstanteria);
-    void subirCambios(Estanteria... estanteria);
+    Estanteria getEstanteriaById(String id);
+    Estanteria getEstanteriaConProductosById(String idEstanteria);
+    void subirCambios(Estanteria... estanterias);
+    void deleteEstanteria(String id);
 }

@@ -29,25 +29,25 @@ import androidx.room.Index;
 )
 public class ProductoEstanteriaEntity {
     @NonNull
-    private Long productoId;
+    private String productoId;
     @NonNull
-    private Long estanteriaId;
+    private String estanteriaId;
     private int cantidad;
 
-    public Long getProductoId() {
-        return productoId;
-    }
-
-    public void setProductoId(Long productoId) {
+    public void setProductoId(String productoId) {
         this.productoId = productoId;
     }
 
-    public Long getEstanteriaId() {
-        return estanteriaId;
+    public String getProductoId() {
+        return productoId;
     }
 
-    public void setEstanteriaId(Long estanteriaId) {
+    public void setEstanteriaId(String estanteriaId) {
         this.estanteriaId = estanteriaId;
+    }
+
+    public String getEstanteriaId() {
+        return estanteriaId;
     }
 
     public int getCantidad() {
@@ -58,4 +58,3 @@ public class ProductoEstanteriaEntity {
         this.cantidad = cantidad;
     }
 }
-

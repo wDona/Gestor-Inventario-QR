@@ -50,19 +50,22 @@ public class MockOffline implements MockDatabaseOperations {
     }
 
     @Override
-    public Producto getProductoById(Long id) throws JSONException {
-        simulateNetworkTimeout();
-        return null; // Nunca llega aquí
-    }
-
-    @Override
-    public Estanteria getEstanteriaById(Long id) throws JSONException {
+    public Producto getProductoById(String id) throws JSONException {
+        // Simular intento de get
         simulateNetworkTimeout();
         return null;
     }
 
     @Override
-    public Estanteria getEstanteriaConProductosById(Long idEstanteria) throws JSONException {
+    public Estanteria getEstanteriaById(String id) throws JSONException {
+        // Simular intento de get
+        simulateNetworkTimeout();
+        return null;
+    }
+
+    @Override
+    public Estanteria getEstanteriaConProductosById(String idEstanteria) throws JSONException {
+        // Simular intento de get
         simulateNetworkTimeout();
         return null;
     }
@@ -81,5 +84,15 @@ public class MockOffline implements MockDatabaseOperations {
     public List<Producto> getAllProductos() throws JSONException {
         simulateNetworkTimeout();
         return null;
+    }
+
+    @Override
+    public void deleteProducto(String id) throws JSONException {
+        simulateNetworkTimeout();
+    }
+
+    @Override
+    public void deleteEstanteria(String id) throws JSONException {
+        simulateNetworkTimeout();
     }
 }

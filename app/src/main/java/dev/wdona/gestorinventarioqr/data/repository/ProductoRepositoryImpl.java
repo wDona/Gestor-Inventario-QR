@@ -70,15 +70,17 @@ public class ProductoRepositoryImpl implements ProductoRepository {
     }
 
     @Override
-    public void moverCantidad(Long productoId, Long estanteriaOrigenId, Long estanteriaDestinoId, int cantidad) throws Exception {
+    public void moverCantidad(String productoId, String estanteriaOrigenId, String estanteriaDestinoId, int cantidad) throws Exception {
         // Mover en local
         local.moverCantidad(productoId, estanteriaOrigenId, estanteriaDestinoId, cantidad);
 
         // Mover en remote
         boolean exito = false;
         try {
-            Producto productoOrigen = new Producto(productoId, null, 0, cantidad, new Estanteria(estanteriaOrigenId, null));
-            remote.removeUndsProduct(productoOrigen, cantidad);
+            if (estanteriaOrigenId != null) {
+                Producto productoOrigen = new Producto(productoId, null, 0, cantidad, new Estanteria(estanteriaOrigenId, null));
+                remote.removeUndsProduct(productoOrigen, cantidad);
+            }
 
             Producto productoDestino = new Producto(productoId, null, 0, cantidad, new Estanteria(estanteriaDestinoId, null));
             remote.addUndsProduct(productoDestino, cantidad);
@@ -111,7 +113,7 @@ public class ProductoRepositoryImpl implements ProductoRepository {
     }
 
     @Override
-    public Producto getProductoById(Long id) {
+    public Producto getProductoById(String id) {
         Producto producto = null;
         try {
             producto = local.getProductoById(id);
@@ -138,7 +140,7 @@ public class ProductoRepositoryImpl implements ProductoRepository {
     }
 
     @Override
-    public Producto getProductoEnEstanteria(Long productoId, Long estanteriaId) {
+    public Producto getProductoEnEstanteria(String productoId, String estanteriaId) {
         try {
             Producto producto = local.getProductoEnEstanteria(productoId, estanteriaId);
             if (producto != null) {
@@ -151,7 +153,7 @@ public class ProductoRepositoryImpl implements ProductoRepository {
     }
 
     @Override
-    public List<Producto> getUbicacionesProducto(Long productoId) {
+    public List<Producto> getUbicacionesProducto(String productoId) {
         try {
             return local.getUbicacionesProducto(productoId);
         } catch (Exception e) {
@@ -195,59 +197,77 @@ public class ProductoRepositoryImpl implements ProductoRepository {
             }
         }
 
-        Map<Long, Producto> productosMap = new HashMap<>();
-        for (Producto remoto : productosRemotos) {
-            if (remoto.getId() != null) {
-                productosMap.put(remoto.getId(), remoto);
-            }
+        Map<String, Producto> productosMap = new HashMap<>();
+
+        for (Producto p : productosLocales) {
+            productosMap.put(p.getId(), p);
         }
-        for (Producto localProd : productosLocales) {
-            if (localProd.getId() != null) {
-                productosMap.put(localProd.getId(), localProd);
-            }
+        for (Producto p : productosRemotos) {
+            productosMap.put(p.getId(), p);
         }
 
-        List<Producto> resultado = new ArrayList<>(productosMap.values());
+        return new ArrayList<>(productosMap.values());
+    }
 
-        if (!productosRemotos.isEmpty()) {
-            for (Producto remoto : productosRemotos) {
-                Producto localProducto = local.getProductoById(remoto.getId());
-                if (localProducto == null) {
-                    try {
-                        local.insertProducto(remoto);
-                    } catch (Exception e) {
-                        android.util.Log.e("ProductoRepo", "Error guardando remoto en local: " + e.getMessage());
-                    }
-                }
-            }
+
+    @Override
+    public void createProducto(Producto producto) throws Exception {
+        local.bajarCambios(producto);
+        boolean exito = false;
+        try {
+            remote.subirCambios(producto);
+            exito = true;
+        } catch (Exception e) {
+            android.util.Log.e("ProductoRepo", "Error en remote.createProducto: " + e.getMessage());
         }
+        registrarOperacion(TipoOperacion.CREATE_PRODUCT.getValor(), producto, 0, exito);
+    }
 
-        return resultado;
+    @Override
+    public void deleteProducto(String id) throws Exception {
+        Producto p = new Producto(id, "DELETED", 0, 0, null); // Dummy para registrar
+        
+        local.deleteProducto(id);
+
+        boolean exito = false;
+        try {
+            remote.deleteProducto(id);
+            exito = true;
+        } catch (Exception e) {
+            android.util.Log.e("ProductoRepo", "Error en remote.deleteProducto: " + e.getMessage());
+        }
+        
+        registrarOperacion(TipoOperacion.DELETE_PRODUCT.getValor(), p, 0, exito);
     }
 
     private void registrarOperacion(String tipo, Producto producto, int cantidad, boolean exito) {
         registrarOperacion(tipo, producto, cantidad, exito, null);
     }
 
-    private void registrarOperacion(String tipo, Producto producto, int cantidad, boolean exito, Long estanteriaDestinoId) {
-        if (registro == null) return;
-        try {
-            Long ultimoId = registro.getUltimoIdOperacionPendiente();
-            if (ultimoId == null) ultimoId = 0L;
+    private void registrarOperacion(String tipo, Producto producto, int cantidad, boolean exito, String estanteriaId) {
+        if (registro != null) {
+            try {
+                Long ultimoId = registro.getUltimoIdOperacionPendiente();
+                if (ultimoId == null) ultimoId = 0L;
 
-            registro.agregarOperacionPendiente(
-                    new Operacion(
-                            ultimoId + 1,
-                            System.currentTimeMillis(),
-                            tipo,
-                            producto.getId(),
-                            estanteriaDestinoId != null ? estanteriaDestinoId : (producto.getEstanteria() != null ? producto.getEstanteria().getId() : null),
-                            cantidad,
-                            exito ? EstadoOperacion.ENVIADA.getValor() : EstadoOperacion.PENDIENTE.getValor()
-                    )
-            );
-        } catch (Exception regError) {
-            android.util.Log.e("ProductoRepo", "Error registrando operación: " + regError.getMessage());
+                Estanteria estanteria = producto.getEstanteria();
+                String estId = (estanteriaId != null) ? estanteriaId :
+                        (estanteria != null ? estanteria.getId() : null);
+
+                registro.agregarOperacionPendiente(
+                        new Operacion(
+                                ultimoId + 1,
+                                System.currentTimeMillis(),
+                                tipo,
+                                producto.getId(),
+                                estId,
+                                cantidad,
+                                exito ? EstadoOperacion.ENVIADA.getValor() : EstadoOperacion.PENDIENTE.getValor()
+                        )
+                );
+            } catch (Exception e) {
+                android.util.Log.e("ProductoRepo", "Error registrando operación: " + e.getMessage());
+            }
         }
     }
 }

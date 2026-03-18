@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Paleta principal - Rojo industrial minimalista -->
+    <color name="primary">#B71C1C</color>
+    <color name="primary_light">#E53935</color>
+    <color name="primary_dark">#8E0000</color>
+    <color name="accent">#F44336</color>
+    <color name="accent_light">#FFCDD2</color>
+
+    <!-- Fondos -->
+    <color name="bg_main">#F5F7FA</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_section">#EDF2F7</color>
+    <color name="bg_scan_data">#FFEBEE</color>
+    <color name="bg_top_app_bar">#F5F5F5</color>
+
+    <!-- Texto -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#636E72</color>
+    <color name="text_hint">#B2BEC3</color>
+
+    <!-- Estados -->
+    <color name="status_online">#27AE60</color>
+    <color name="status_offline">#E74C3C</color>
+    <color name="status_warning">#F39C12</color>
+    <color name="status_enviada">#27AE60</color>
+    <color name="status_pendiente">#F39C12</color>
+    <color name="status_fallida">#E74C3C</color>
+
+    <!-- Precios -->
+    <color name="precio">#27AE60</color>
+
+    <!-- Dividers -->
+    <color name="divider">#E0E6ED</color>
+
+    <!-- Legacy (mantener por compatibilidad) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>

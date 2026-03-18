@@ -11,7 +11,8 @@ public interface ProductoApi {
     void addUndsProduct(Producto producto, int cantidad) throws JSONException;
     void removeUndsProduct(Producto producto, int cantidad) throws JSONException;
     void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws JSONException;
-    Producto getProductoById(Long id);
-    void subirCambios(Producto ... producto);
+    Producto getProductoById(String id);
     List<Producto> getAllProductos();
+    void subirCambios(Producto... productos);
+    void deleteProducto(String id);
 }

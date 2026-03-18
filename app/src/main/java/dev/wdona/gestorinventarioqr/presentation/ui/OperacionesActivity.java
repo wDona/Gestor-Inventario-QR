@@ -24,9 +24,10 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
     private OperacionViewModel operacionViewModel;
     private RecyclerView recyclerView;
     private OperacionAdapter operacionAdapter;
-    private TextView tvEmpty;
+    private View tvEmpty;
     private Button btnReintentarTodas;
     private Button btnLimpiarEnviadas;
+    private Button btnBack;
     private ExecutorService executor;
 
     @Override
@@ -53,9 +54,10 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
 
     private void initViews() {
         recyclerView = findViewById(R.id.rvOperaciones);
-        tvEmpty = findViewById(R.id.tvEmpty);
+        tvEmpty = findViewById(R.id.emptyState);
         btnReintentarTodas = findViewById(R.id.btnReintentarTodas);
         btnLimpiarEnviadas = findViewById(R.id.btnLimpiarEnviadas);
+        btnBack = findViewById(R.id.btnBack);
 
         // Configurar RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -67,6 +69,11 @@ public class OperacionesActivity extends AppCompatActivity implements OperacionA
 
         // Botón reintentar todas
         btnReintentarTodas.setOnClickListener(v -> reintentarTodasOperaciones());
+
+        // Botón atrás
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
     }
 
     private void observarOperaciones() {

@@ -91,11 +91,11 @@ public class ProductoMapper {
             return null;
         }
         try {
-            Long id = json.optLong("id", -1);
+            String id = json.optString("id", null);
             String nombre = json.optString("nombre", null);
             double precio = json.optDouble("precio", 0);
             int cantidad = json.optInt("cantidad", 0);
-            Long estanteriaId = json.has("estanteriaId") && !json.isNull("estanteriaId") ? json.getLong("estanteriaId") : null;
+            String estanteriaId = json.has("estanteriaId") && !json.isNull("estanteriaId") ? json.getString("estanteriaId") : null;
             Estanteria estanteria = estanteriaId != null ? new Estanteria(estanteriaId, null) : null;
 
             return new Producto(id, nombre, precio, cantidad, estanteria);

@@ -15,14 +15,16 @@ import dev.wdona.gestorinventarioqr.domain.model.Operacion;
 public class OperacionRepositoryImpl implements OperacionRepository {
     OperacionLocalDataSourceImpl operacionLocal;
     ProductoRemoteDataSourceImpl productoRemote;
+    EstanteriaRemoteDataSourceImpl estanteriaRemote;
     EstanteriaLocalDataSourceImpl estanteriaLocal;
     ProductoLocalDataSourceImpl productoLocal;
 
-    public OperacionRepositoryImpl(OperacionLocalDataSourceImpl operacionLocal, ProductoRemoteDataSourceImpl productoRemote, EstanteriaLocalDataSourceImpl estanteriaLocal, ProductoLocalDataSourceImpl productoLocal) {
+    public OperacionRepositoryImpl(OperacionLocalDataSourceImpl operacionLocal, ProductoRemoteDataSourceImpl productoRemote, EstanteriaLocalDataSourceImpl estanteriaLocal, ProductoLocalDataSourceImpl productoLocal, EstanteriaRemoteDataSourceImpl estanteriaRemote) {
         this.operacionLocal = operacionLocal;
         this.productoRemote = productoRemote;
         this.estanteriaLocal = estanteriaLocal;
         this.productoLocal = productoLocal;
+        this.estanteriaRemote = estanteriaRemote;
     }
 
     @Override
@@ -72,6 +74,14 @@ public class OperacionRepositoryImpl implements OperacionRepository {
                 productoRemote.removeUndsProduct(productoLocal.getProductoById(operacion.getProductoId()), operacion.getCantidad());
             } else if (tipoOperacion.equals(TipoOperacion.ASSIGN.getValor())) {
                 productoRemote.assignProductToEstanteria(productoLocal.getProductoById(operacion.getProductoId()), estanteriaLocal.getEstanteriaById(operacion.getEstanteriaId()));
+            } else if (tipoOperacion.equals(TipoOperacion.CREATE_PRODUCT.getValor())) {
+                productoRemote.subirCambios(productoLocal.getProductoById(operacion.getProductoId()));
+            } else if (tipoOperacion.equals(TipoOperacion.DELETE_PRODUCT.getValor())) {
+                productoRemote.deleteProducto(operacion.getProductoId());
+            } else if (tipoOperacion.equals(TipoOperacion.CREATE_ESTANTERIA.getValor())) {
+                estanteriaRemote.subirCambios(estanteriaLocal.getEstanteriaById(operacion.getEstanteriaId()));
+            } else if (tipoOperacion.equals(TipoOperacion.DELETE_ESTANTERIA.getValor())) {
+                estanteriaRemote.deleteEstanteria(operacion.getEstanteriaId());
             } else {
                 System.out.println("Tipo de operación desconocido: " + tipoOperacion);
                 return false;

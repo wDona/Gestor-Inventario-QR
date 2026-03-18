@@ -9,6 +9,6 @@ public interface ProductoDataSource {
     void addUndsProduct(Producto producto, int cantidad) throws Exception;
     void removeUndsProduct(Producto producto, int cantidad) throws Exception;
     void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws Exception;
-    Producto getProductoById(Long id);
+    Producto getProductoById(String id);
     List<Producto> getAllProductos();
 }

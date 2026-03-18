@@ -5,7 +5,7 @@ import dev.wdona.gestorinventarioqr.domain.model.Estanteria;
 import dev.wdona.gestorinventarioqr.domain.model.Producto;
 
 public interface EstanteriaDataSource {
-    Estanteria getEstanteriaById(int id);
+    Estanteria getEstanteriaById(String id);
     void addProducto(Estanteria estanteria, Producto producto);
-    Estanteria getEstanteriaConProductosById(int idEstanteria);
+    Estanteria getEstanteriaConProductosById(String idEstanteria);
 }

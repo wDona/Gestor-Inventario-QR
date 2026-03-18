@@ -1,5 +1,6 @@
 package dev.wdona.gestorinventarioqr.presentation.ui.scan;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,13 +18,15 @@ import dev.wdona.gestorinventarioqr.domain.model.Producto;
 public class ProductoScanAdapter extends RecyclerView.Adapter<ProductoScanAdapter.ViewHolder> {
 
     private List<Producto> productos = new ArrayList<>();
-    private OnProductoClickListener listener;
+    private OnProductoInteractionListener listener;
 
-    public interface OnProductoClickListener {
+    public interface OnProductoInteractionListener {
         void onProductoClick(Producto producto);
+        void onAddStock(Producto producto);
+        void onRemoveStock(Producto producto);
     }
 
-    public ProductoScanAdapter(OnProductoClickListener listener) {
+    public ProductoScanAdapter(OnProductoInteractionListener listener) {
         this.listener = listener;
     }
 
@@ -55,24 +58,60 @@ public class ProductoScanAdapter extends RecyclerView.Adapter<ProductoScanAdapte
         private final TextView tvNombre;
         private final TextView tvCantidad;
         private final TextView tvPrecio;
+        private final View btnAddStock;
+        private final View btnRemoveStock;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvNombre = itemView.findViewById(R.id.tvProductoNombre);
             tvCantidad = itemView.findViewById(R.id.tvProductoCantidad);
             tvPrecio = itemView.findViewById(R.id.tvProductoPrecio);
+            btnAddStock = itemView.findViewById(R.id.btnAddStock);
+            btnRemoveStock = itemView.findViewById(R.id.btnRemoveStock);
+            
+            // Contenedor de información clickeable
+            View infoContainer = itemView.findViewById(R.id.infoContainer);
+            if (infoContainer != null) {
+                // Si existe el container específico, el click va ahí
+                infoContainer.setOnClickListener(v -> {
+                    int pos = getAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION && listener != null) {
+                        listener.onProductoClick(productos.get(pos));
+                    }
+                });
+                
+                // Y desactivamos el click en el padre para evitar conflictos
+                itemView.setOnClickListener(null);
+                itemView.setClickable(false);
+            } else {
+                // Fallback: Si no se encuentra el container, usamos el itemView completo
+                itemView.setOnClickListener(v -> {
+                    int pos = getAdapterPosition();
+                    if (pos != RecyclerView.NO_POSITION && listener != null) {
+                        listener.onProductoClick(productos.get(pos));
+                    }
+                });
+            }
 
-            itemView.setOnClickListener(v -> {
+            btnAddStock.setOnClickListener(v -> {
                 int pos = getAdapterPosition();
                 if (pos != RecyclerView.NO_POSITION && listener != null) {
-                    listener.onProductoClick(productos.get(pos));
+                    listener.onAddStock(productos.get(pos));
+                }
+            });
+
+            btnRemoveStock.setOnClickListener(v -> {
+                int pos = getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onRemoveStock(productos.get(pos));
                 }
             });
         }
 
+        @SuppressLint("DefaultLocale")
         void bind(Producto producto) {
             tvNombre.setText(producto.getNombre());
-            tvCantidad.setText("Cantidad: " + producto.getCantidad());
+            tvCantidad.setText(String.valueOf(producto.getCantidad()));
             tvPrecio.setText(String.format("%.2f €", producto.getPrecio()));
         }
     }

@@ -34,8 +34,8 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
                 android.util.Log.e("ProductoLocalDS", "No se puede añadir sin estantería");
                 return;
             }
-            Long productoId = producto.getId();
-            Long estanteriaId = producto.getEstanteria().getId();
+            String productoId = producto.getId().trim();
+            String estanteriaId = producto.getEstanteria().getId().trim();
 
             // Verificar si existe la relación
             ProductoEstanteriaEntity relacion = peDao.getRelacion(productoId, estanteriaId);
@@ -61,8 +61,8 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
                 android.util.Log.e("ProductoLocalDS", "No se puede quitar sin estantería");
                 return;
             }
-            Long productoId = producto.getId();
-            Long estanteriaId = producto.getEstanteria().getId();
+            String productoId = producto.getId().trim();
+            String estanteriaId = producto.getEstanteria().getId().trim();
 
             peDao.removeUnds(productoId, estanteriaId, cantidad);
 
@@ -79,16 +79,19 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     @Override
     public void assignProductToEstanteria(Producto producto, Estanteria estanteria) {
         try {
+            String productoId = producto.getId().trim();
+            String estanteriaId = estanteria.getId().trim();
+
             // Esto ahora crea/actualiza una relación en la tabla intermedia
-            ProductoEstanteriaEntity relacion = peDao.getRelacion(producto.getId(), estanteria.getId());
+            ProductoEstanteriaEntity relacion = peDao.getRelacion(productoId, estanteriaId);
             if (relacion != null) {
                 // Ya existe, sumar la cantidad
-                peDao.addUnds(producto.getId(), estanteria.getId(), producto.getCantidad());
+                peDao.addUnds(productoId, estanteriaId, producto.getCantidad());
             } else {
                 // Crear nueva relación
                 ProductoEstanteriaEntity nueva = new ProductoEstanteriaEntity();
-                nueva.setProductoId(producto.getId());
-                nueva.setEstanteriaId(estanteria.getId());
+                nueva.setProductoId(productoId);
+                nueva.setEstanteriaId(estanteriaId);
                 nueva.setCantidad(producto.getCantidad());
                 peDao.insertar(nueva);
             }
@@ -100,22 +103,26 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     /**
      * Mover cantidad de un producto de una estantería a otra
      */
-    public void moverCantidad(Long productoId, Long estanteriaOrigenId, Long estanteriaDestinoId, int cantidad) {
+    public void moverCantidad(String productoId, String estanteriaOrigenId, String estanteriaDestinoId, int cantidad) {
         try {
-            // Restar del origen
-            peDao.removeUnds(productoId, estanteriaOrigenId, cantidad);
+            // Si el origen no es nulo, restar del origen
+            if (estanteriaOrigenId != null) {
+                peDao.removeUnds(productoId, estanteriaOrigenId, cantidad);
 
-            // Verificar si queda algo en origen
-            ProductoEstanteriaEntity relOrigen = peDao.getRelacion(productoId, estanteriaOrigenId);
-            if (relOrigen != null && relOrigen.getCantidad() <= 0) {
-                peDao.eliminarRelacion(productoId, estanteriaOrigenId);
+                // Verificar si queda algo en origen
+                ProductoEstanteriaEntity relOrigen = peDao.getRelacion(productoId, estanteriaOrigenId);
+                if (relOrigen != null && relOrigen.getCantidad() <= 0) {
+                    peDao.eliminarRelacion(productoId, estanteriaOrigenId);
+                }
             }
 
             // Sumar al destino
             ProductoEstanteriaEntity relDestino = peDao.getRelacion(productoId, estanteriaDestinoId);
             if (relDestino != null) {
+                // Verificar si ya existe, sumar cantidad
                 peDao.addUnds(productoId, estanteriaDestinoId, cantidad);
             } else {
+                // Crear nueva relación si no existe
                 ProductoEstanteriaEntity nueva = new ProductoEstanteriaEntity();
                 nueva.setProductoId(productoId);
                 nueva.setEstanteriaId(estanteriaDestinoId);
@@ -130,7 +137,7 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     /**
      * Obtiene un producto con la cantidad específica que tiene en una estantería concreta.
      */
-    public Producto getProductoEnEstanteria(Long productoId, Long estanteriaId) {
+    public Producto getProductoEnEstanteria(String productoId, String estanteriaId) {
         try {
             ProductoEntity entity = dao.getProductoById(productoId);
             if (entity == null) return null;
@@ -152,7 +159,7 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
      * Devuelve una lista de Producto, uno por cada estantería donde está,
      * cada uno con la cantidad específica de esa estantería.
      */
-    public List<Producto> getUbicacionesProducto(Long productoId) {
+    public List<Producto> getUbicacionesProducto(String productoId) {
         List<Producto> ubicaciones = new ArrayList<>();
         try {
             ProductoEntity entity = dao.getProductoById(productoId);
@@ -173,7 +180,7 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     }
 
     @Override
-    public Producto getProductoById(Long id) {
+    public Producto getProductoById(String id) {
         try {
             ProductoEntity entity = dao.getProductoById(id);
             if (entity == null) {
@@ -229,6 +236,9 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     public void bajarCambios(Producto... productos) {
         try {
             for (Producto producto : productos) {
+                // Aseguramos ID sin espacios
+                producto = new Producto(producto.getId().trim(), producto.getNombre(), producto.getPrecio(), producto.getCantidad(), producto.getEstanteria());
+                
                 // Actualizar datos base del producto
                 dao.insertProducto(ProductoMapper.toEntity(producto));
 
@@ -236,6 +246,9 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
                 if (producto.getEstanteria() != null) {
                     ProductoEstanteriaEntity pe = ProductoMapper.toRelacionEntity(producto);
                     if (pe != null) {
+                        // Aseguramos IDs trimados en la relación
+                        pe.setProductoId(pe.getProductoId().trim());
+                        pe.setEstanteriaId(pe.getEstanteriaId().trim());
                         peDao.insertar(pe); // REPLACE si ya existe
                     }
                 }
@@ -248,17 +261,26 @@ public class ProductoLocalDataSourceImpl implements ProductoLocalDataSource {
     @Override
     public void insertProducto(Producto producto) {
         try {
+            // Aseguramos ID sin espacios al insertar
+            producto = new Producto(producto.getId().trim(), producto.getNombre(), producto.getPrecio(), producto.getCantidad(), producto.getEstanteria());
             dao.insertProducto(ProductoMapper.toEntity(producto));
 
             // Si tiene contexto de estantería, crear la relación
             if (producto.getEstanteria() != null && producto.getCantidad() > 0) {
                 ProductoEstanteriaEntity pe = ProductoMapper.toRelacionEntity(producto);
                 if (pe != null) {
+                    pe.setProductoId(pe.getProductoId().trim());
+                    pe.setEstanteriaId(pe.getEstanteriaId().trim());
                     peDao.insertar(pe);
                 }
             }
         } catch (Exception e) {
             android.util.Log.e("ProductoLocalDS", "Error insertProducto: " + e.getMessage());
         }
+    }
+
+    @Override
+    public void deleteProducto(String id) {
+        dao.deleteProducto(id);
     }
 }

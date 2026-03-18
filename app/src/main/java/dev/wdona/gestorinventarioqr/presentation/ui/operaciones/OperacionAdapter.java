@@ -1,6 +1,6 @@
 package dev.wdona.gestorinventarioqr.presentation.ui.operaciones;
 
-import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
@@ -18,6 +19,7 @@ import java.util.Locale;
 
 import dev.wdona.gestorinventarioqr.R;
 import dev.wdona.gestorinventarioqr.data.EstadoOperacion;
+import dev.wdona.gestorinventarioqr.data.TipoOperacion;
 import dev.wdona.gestorinventarioqr.domain.model.Operacion;
 
 public class OperacionAdapter extends RecyclerView.Adapter<OperacionAdapter.ViewHolder> {
@@ -48,8 +50,7 @@ public class OperacionAdapter extends RecyclerView.Adapter<OperacionAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Operacion operacion = operaciones.get(position);
-        holder.bind(operacion);
+        holder.bind(operaciones.get(position));
     }
 
     @Override
@@ -58,74 +59,57 @@ public class OperacionAdapter extends RecyclerView.Adapter<OperacionAdapter.View
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
+        private final View estadoIndicator;
         private final TextView tvTipoOperacion;
-        private final TextView tvProductoId;
-        private final TextView tvEstanteriaId;
-        private final TextView tvCantidad;
         private final TextView tvEstado;
+        private final TextView tvDetalles;
         private final TextView tvTimestamp;
         private final Button btnReintentar;
-        private final View estadoIndicator;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+            estadoIndicator = itemView.findViewById(R.id.estadoIndicator);
             tvTipoOperacion = itemView.findViewById(R.id.tvTipoOperacion);
-            tvProductoId = itemView.findViewById(R.id.tvProductoId);
-            tvEstanteriaId = itemView.findViewById(R.id.tvEstanteriaId);
-            tvCantidad = itemView.findViewById(R.id.tvCantidad);
             tvEstado = itemView.findViewById(R.id.tvEstado);
+            tvDetalles = itemView.findViewById(R.id.tvDetalles);
             tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
             btnReintentar = itemView.findViewById(R.id.btnReintentar);
-            estadoIndicator = itemView.findViewById(R.id.estadoIndicator);
         }
 
         void bind(Operacion operacion) {
-            // Tipo de operación
-            String tipoTexto = getTipoOperacionTexto(operacion.getTipoOperacion());
+            // Tipo de operación con texto legible
+            String tipoTexto = getTipoTexto(operacion.getTipoOperacion());
             tvTipoOperacion.setText(tipoTexto);
 
-            // IDs
-            tvProductoId.setText("Producto ID: " + operacion.getProductoId());
-            tvEstanteriaId.setText("Estantería ID: " + (operacion.getEstanteriaId() != null ? operacion.getEstanteriaId() : "-"));
-
-            // Cantidad (solo mostrar si es relevante)
-            if (operacion.getCantidad() > 0) {
-                tvCantidad.setText("Cantidad: " + operacion.getCantidad());
-                tvCantidad.setVisibility(View.VISIBLE);
-            } else {
-                tvCantidad.setVisibility(View.GONE);
+            // Detalles en una línea compacta
+            String detalles = "Prod. #" + operacion.getProductoId();
+            if (operacion.getEstanteriaId() != null) {
+                detalles += " · Est. #" + operacion.getEstanteriaId();
             }
+            detalles += " · " + operacion.getCantidad() + " uds";
+            tvDetalles.setText(detalles);
+
+            // Timestamp relativo
+            tvTimestamp.setText(getRelativeTime(operacion.getTimestamp()));
 
             // Estado con color
             String estado = operacion.getEstado();
-            tvEstado.setText(estado);
+            tvEstado.setText(getEstadoTexto(estado));
+            int colorEstado = getColorEstado(estado);
+            estadoIndicator.setBackgroundColor(colorEstado);
 
-            int colorEstado;
-            if (EstadoOperacion.PENDIENTE.getValor().equals(estado)) {
-                colorEstado = Color.parseColor("#FFA500"); // Naranja
-                btnReintentar.setVisibility(View.VISIBLE);
-            } else if (EstadoOperacion.ENVIADA.getValor().equals(estado)) {
-                colorEstado = Color.parseColor("#4CAF50"); // Verde
-                btnReintentar.setVisibility(View.GONE);
-            } else if (EstadoOperacion.FALLIDA.getValor().equals(estado)) {
-                colorEstado = Color.parseColor("#F44336"); // Rojo
-                btnReintentar.setVisibility(View.VISIBLE);
-            } else {
-                colorEstado = Color.GRAY;
-                btnReintentar.setVisibility(View.GONE);
-            }
+            // Chip de estado con color dinámico
+            GradientDrawable chipBg = new GradientDrawable();
+            chipBg.setShape(GradientDrawable.RECTANGLE);
+            chipBg.setCornerRadius(20f);
+            chipBg.setColor(colorEstado);
+            tvEstado.setBackground(chipBg);
 
-            tvEstado.setTextColor(colorEstado);
-            if (estadoIndicator != null) {
-                estadoIndicator.setBackgroundColor(colorEstado);
-            }
+            // Mostrar botón reintentar solo si pendiente o fallida
+            boolean puedeReintentar = estado.equals(EstadoOperacion.PENDIENTE.getValor())
+                    || estado.equals(EstadoOperacion.FALLIDA.getValor());
+            btnReintentar.setVisibility(puedeReintentar ? View.VISIBLE : View.GONE);
 
-            // Timestamp
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault());
-            String fecha = sdf.format(new Date(operacion.getTimestamp()));
-            tvTimestamp.setText(fecha);
-
-            // Botón reintentar
             btnReintentar.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onReintentarClick(operacion);
@@ -133,19 +117,43 @@ public class OperacionAdapter extends RecyclerView.Adapter<OperacionAdapter.View
             });
         }
 
-        private String getTipoOperacionTexto(String tipo) {
-            if (tipo == null) return "Desconocido";
-            switch (tipo) {
-                case "ADD":
-                    return "➕ Añadir unidades";
-                case "REMOVE":
-                    return "➖ Quitar unidades";
-                case "ASSIGN":
-                case "MOVE":
-                    return "📦 Mover a estantería";
-                default:
-                    return tipo;
+        private String getTipoTexto(String tipo) {
+            if (TipoOperacion.ADD.getValor().equals(tipo)) return "Añadir stock";
+            if (TipoOperacion.REMOVE.getValor().equals(tipo)) return "Retirar stock";
+            if (TipoOperacion.ASSIGN.getValor().equals(tipo)) return "Mover producto";
+            return tipo;
+        }
+
+        private String getEstadoTexto(String estado) {
+            if (EstadoOperacion.ENVIADA.getValor().equals(estado)) return "Enviada";
+            if (EstadoOperacion.PENDIENTE.getValor().equals(estado)) return "Pendiente";
+            if (EstadoOperacion.FALLIDA.getValor().equals(estado)) return "Fallida";
+            return estado;
+        }
+
+        private int getColorEstado(String estado) {
+            if (EstadoOperacion.ENVIADA.getValor().equals(estado)) {
+                return ContextCompat.getColor(itemView.getContext(), R.color.status_enviada);
+            } else if (EstadoOperacion.FALLIDA.getValor().equals(estado)) {
+                return ContextCompat.getColor(itemView.getContext(), R.color.status_fallida);
             }
+            return ContextCompat.getColor(itemView.getContext(), R.color.status_pendiente);
+        }
+
+        private String getRelativeTime(long timestamp) {
+            long diff = System.currentTimeMillis() - timestamp;
+            long seconds = diff / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            if (seconds < 60) return "Ahora";
+            if (minutes < 60) return "Hace " + minutes + " min";
+            if (hours < 24) return "Hace " + hours + "h";
+            if (days < 7) return "Hace " + days + "d";
+
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yy HH:mm", Locale.getDefault());
+            return sdf.format(new Date(timestamp));
         }
     }
 }

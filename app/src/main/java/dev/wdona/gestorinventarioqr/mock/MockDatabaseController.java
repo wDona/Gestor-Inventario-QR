@@ -22,8 +22,8 @@ public class MockDatabaseController implements MockDatabaseOperations {
     /**
      * Genera una clave única para la relación producto-estantería en el JSON
      */
-    private String claveRelacion(Long productoId, Long estanteriaId) {
-        return productoId + "_" + estanteriaId;
+    private String claveRelacion(String productoId, String estanteriaId) {
+        return (productoId != null ? productoId.trim() : "null") + "_" + (estanteriaId != null ? estanteriaId.trim() : "null");
     }
 
     @Override
@@ -33,8 +33,8 @@ public class MockDatabaseController implements MockDatabaseOperations {
             return;
         }
 
-        Long productoId = producto.getId();
-        Long estanteriaId = producto.getEstanteria().getId();
+        String productoId = producto.getId().trim();
+        String estanteriaId = producto.getEstanteria().getId().trim();
         String clave = claveRelacion(productoId, estanteriaId);
 
         JSONObject relaciones = JSONUtils.cargarJSONDesdeArchivo(RELACIONES_FILE);
@@ -63,8 +63,8 @@ public class MockDatabaseController implements MockDatabaseOperations {
             return;
         }
 
-        Long productoId = producto.getId();
-        Long estanteriaId = producto.getEstanteria().getId();
+        String productoId = producto.getId().trim();
+        String estanteriaId = producto.getEstanteria().getId().trim();
         String clave = claveRelacion(productoId, estanteriaId);
 
         JSONObject relaciones = JSONUtils.cargarJSONDesdeArchivo(RELACIONES_FILE);
@@ -89,8 +89,8 @@ public class MockDatabaseController implements MockDatabaseOperations {
 
     @Override
     public void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws JSONException {
-        Long productoId = producto.getId();
-        Long estanteriaId = estanteria.getId();
+        String productoId = producto.getId().trim();
+        String estanteriaId = estanteria.getId().trim();
         String clave = claveRelacion(productoId, estanteriaId);
 
         JSONObject relaciones = JSONUtils.cargarJSONDesdeArchivo(RELACIONES_FILE);
@@ -116,7 +116,8 @@ public class MockDatabaseController implements MockDatabaseOperations {
     @Override
     public void addProducto(Producto producto) throws JSONException {
         JSONObject jsonProducto = new JSONObject();
-        jsonProducto.put("id", producto.getId());
+        String prodId = producto.getId().trim();
+        jsonProducto.put("id", prodId);
         jsonProducto.put("nombre", producto.getNombre());
         jsonProducto.put("precio", producto.getPrecio());
 
@@ -124,17 +125,18 @@ public class MockDatabaseController implements MockDatabaseOperations {
 
         // Si tiene estantería, crear relación
         if (producto.getEstanteria() != null && producto.getCantidad() > 0) {
-            String clave = claveRelacion(producto.getId(), producto.getEstanteria().getId());
+            String estId = producto.getEstanteria().getId().trim();
+            String clave = claveRelacion(prodId, estId);
             JSONObject rel = new JSONObject();
-            rel.put("productoId", producto.getId());
-            rel.put("estanteriaId", producto.getEstanteria().getId());
+            rel.put("productoId", prodId);
+            rel.put("estanteriaId", estId);
             rel.put("cantidad", producto.getCantidad());
             JSONUtils.anadirJSONObjectAlArchivoConClave(rel, RELACIONES_FILE, clave);
         }
     }
 
     @Override
-    public Producto getProductoById(Long id) throws JSONException {
+    public Producto getProductoById(String id) throws JSONException {
         JSONObject jsonProductos = JSONUtils.cargarJSONDesdeArchivo(PRODUCTOS_FILE);
         String idStr = String.valueOf(id);
 
@@ -156,15 +158,15 @@ public class MockDatabaseController implements MockDatabaseOperations {
         while (keys.hasNext()) {
             String key = keys.next();
             JSONObject rel = relaciones.getJSONObject(key);
-            if (rel.getLong("productoId") == id) {
+            if (rel.getString("productoId").equals(id)) {
                 int cant = rel.getInt("cantidad");
                 cantidadTotal += cant;
 
                 if (primeraEstanteria == null) {
-                    Long estId = rel.getLong("estanteriaId");
+                    String estId = rel.getString("estanteriaId");
                     JSONObject jsonEstanterias = JSONUtils.cargarJSONDesdeArchivo(ESTANTERIAS_FILE);
-                    if (jsonEstanterias.has(String.valueOf(estId))) {
-                        JSONObject jsonEst = jsonEstanterias.getJSONObject(String.valueOf(estId));
+                    if (jsonEstanterias.has(estId)) {
+                        JSONObject jsonEst = jsonEstanterias.getJSONObject(estId);
                         primeraEstanteria = new Estanteria(estId, jsonEst.optString("nombre", "Estanteria " + estId));
                     }
                 }
@@ -175,20 +177,20 @@ public class MockDatabaseController implements MockDatabaseOperations {
     }
 
     @Override
-    public Estanteria getEstanteriaById(Long estanteriaId) throws JSONException {
+    public Estanteria getEstanteriaById(String estanteriaId) throws JSONException {
         return getEstanteriaConProductosById(estanteriaId);
     }
 
     @Override
-    public Estanteria getEstanteriaConProductosById(Long estanteriaId) throws JSONException {
+    public Estanteria getEstanteriaConProductosById(String estanteriaId) throws JSONException {
         JSONObject jsonEstanterias = JSONUtils.cargarJSONDesdeArchivo(ESTANTERIAS_FILE);
 
-        if (!jsonEstanterias.has(String.valueOf(estanteriaId))) {
+        if (!jsonEstanterias.has(estanteriaId)) {
             Log.e("MockDB", "Estantería no encontrada ID: " + estanteriaId);
             return null;
         }
 
-        JSONObject jsonEstanteria = jsonEstanterias.getJSONObject(String.valueOf(estanteriaId));
+        JSONObject jsonEstanteria = jsonEstanterias.getJSONObject(estanteriaId);
         String nombreEstanteria = jsonEstanteria.optString("nombre", "Estanteria " + estanteriaId);
         Estanteria estanteria = new Estanteria(estanteriaId, nombreEstanteria);
 
@@ -200,14 +202,14 @@ public class MockDatabaseController implements MockDatabaseOperations {
         while (keys.hasNext()) {
             String key = keys.next();
             JSONObject rel = relaciones.getJSONObject(key);
-            Long relEstanteriaId = rel.getLong("estanteriaId");
+            String relEstanteriaId = rel.getString("estanteriaId");
 
             if (relEstanteriaId.equals(estanteriaId)) {
-                Long productoId = rel.getLong("productoId");
+                String productoId = rel.getString("productoId");
                 int cantidad = rel.getInt("cantidad");
 
-                if (jsonProductos.has(String.valueOf(productoId))) {
-                    JSONObject jsonProd = jsonProductos.getJSONObject(String.valueOf(productoId));
+                if (jsonProductos.has(productoId)) {
+                    JSONObject jsonProd = jsonProductos.getJSONObject(productoId);
                     String nombreProd = jsonProd.getString("nombre");
                     double precio = jsonProd.optDouble("precio", 0.0);
 
@@ -267,8 +269,17 @@ public class MockDatabaseController implements MockDatabaseOperations {
             JSONObject json = new JSONObject();
             json.put("id", estanteria.getId());
             json.put("nombre", estanteria.getNombre());
-            JSONUtils.modificarJSONObjectEnArchivo(json, ESTANTERIAS_FILE);
-            Log.d("MockDB", "Estanteria actualizada: " + estanteria.getNombre());
+
+            JSONObject jsonArchivo = JSONUtils.cargarJSONDesdeArchivo(ESTANTERIAS_FILE);
+            String idStr = String.valueOf(estanteria.getId());
+            
+            if (jsonArchivo.has(idStr)) {
+                JSONUtils.modificarJSONObjectEnArchivo(json, ESTANTERIAS_FILE);
+                Log.d("MockDB", "Estanteria actualizada: " + estanteria.getNombre());
+            } else {
+                JSONUtils.anadirJSONObjectAlArchivo(json, ESTANTERIAS_FILE);
+                Log.d("MockDB", "Estanteria creada: " + estanteria.getNombre());
+            }
         }
     }
 
@@ -284,7 +295,7 @@ public class MockDatabaseController implements MockDatabaseOperations {
         while (keys.hasNext()) {
             String key = keys.next();
             JSONObject jsonProd = jsonProductos.getJSONObject(key);
-            Long productoId = jsonProd.getLong("id");
+            String productoId = jsonProd.getString("id");
             String nombre = jsonProd.getString("nombre");
             double precio = jsonProd.optDouble("precio", 0.0);
 
@@ -296,10 +307,10 @@ public class MockDatabaseController implements MockDatabaseOperations {
             while (relKeys.hasNext()) {
                 String relKey = relKeys.next();
                 JSONObject rel = relaciones.getJSONObject(relKey);
-                if (rel.getLong("productoId") == productoId) {
+                if (rel.getString("productoId").equals(productoId)) {
                     cantidadTotal += rel.getInt("cantidad");
                     if (primeraEstanteria == null) {
-                        Long estId = rel.getLong("estanteriaId");
+                        String estId = rel.getString("estanteriaId");
                         primeraEstanteria = getEstanteriaSimple(estId);
                     }
                 }
@@ -311,14 +322,68 @@ public class MockDatabaseController implements MockDatabaseOperations {
         return productos;
     }
 
+    @Override
+    public void deleteProducto(String id) throws JSONException {
+        String prodId = id.trim();
+        JSONObject productos = JSONUtils.cargarJSONDesdeArchivo(PRODUCTOS_FILE);
+        if (productos.has(prodId)) {
+            productos.remove(prodId);
+            JSONUtils.escribirJSONDeNuevo(productos, PRODUCTOS_FILE);
+        }
+
+        // Eliminar relaciones
+        JSONObject relaciones = JSONUtils.cargarJSONDesdeArchivo(RELACIONES_FILE);
+        Iterator<String> keys = relaciones.keys();
+        boolean changed = false;
+        while (keys.hasNext()) {
+            String key = keys.next();
+            JSONObject rel = relaciones.getJSONObject(key);
+            if (rel.getString("productoId").equals(prodId)) {
+                keys.remove();
+                changed = true;
+            }
+        }
+        if (changed) {
+            JSONUtils.escribirJSONDeNuevo(relaciones, RELACIONES_FILE);
+        }
+        Log.d("MockDB", "Producto eliminado: " + prodId);
+    }
+
+    @Override
+    public void deleteEstanteria(String id) throws JSONException {
+        String estId = id.trim();
+        JSONObject estanterias = JSONUtils.cargarJSONDesdeArchivo(ESTANTERIAS_FILE);
+        if (estanterias.has(estId)) {
+            estanterias.remove(estId);
+            JSONUtils.escribirJSONDeNuevo(estanterias, ESTANTERIAS_FILE);
+        }
+
+        // Eliminar relaciones
+        JSONObject relaciones = JSONUtils.cargarJSONDesdeArchivo(RELACIONES_FILE);
+        Iterator<String> keys = relaciones.keys();
+        boolean changed = false;
+        while (keys.hasNext()) {
+            String key = keys.next();
+            JSONObject rel = relaciones.getJSONObject(key);
+            if (rel.getString("estanteriaId").equals(estId)) {
+                keys.remove();
+                changed = true;
+            }
+        }
+        if (changed) {
+            JSONUtils.escribirJSONDeNuevo(relaciones, RELACIONES_FILE);
+        }
+        Log.d("MockDB", "Estantería eliminada: " + estId);
+    }
+
     /**
      * Obtiene estantería sin productos (para evitar bucles)
      */
-    private Estanteria getEstanteriaSimple(Long estanteriaId) {
+    private Estanteria getEstanteriaSimple(String estanteriaId) {
         try {
             JSONObject jsonEstanterias = JSONUtils.cargarJSONDesdeArchivo(ESTANTERIAS_FILE);
-            if (jsonEstanterias.has(String.valueOf(estanteriaId))) {
-                JSONObject json = jsonEstanterias.getJSONObject(String.valueOf(estanteriaId));
+            if (jsonEstanterias.has(estanteriaId)) {
+                JSONObject json = jsonEstanterias.getJSONObject(estanteriaId);
                 return new Estanteria(estanteriaId, json.optString("nombre", "Estanteria " + estanteriaId));
             }
         } catch (Exception e) {

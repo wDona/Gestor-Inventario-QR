@@ -12,12 +12,14 @@ public interface MockDatabaseOperations {
     void removeUndsProduct(Producto producto, int cantidad) throws JSONException;
     void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws JSONException;
     void addProducto(Producto producto) throws JSONException;
-    Producto getProductoById(Long id) throws JSONException;
-    Estanteria getEstanteriaById(Long id) throws JSONException;
-    Estanteria getEstanteriaConProductosById(Long idEstanteria) throws JSONException;
+    Producto getProductoById(String id) throws JSONException;
+    Estanteria getEstanteriaById(String id) throws JSONException;
+    Estanteria getEstanteriaConProductosById(String idEstanteria) throws JSONException;
     void subirCambiosProducto(Producto ... producto) throws JSONException;
 
     void subirCambiosEstanteria(Estanteria... estanterias) throws JSONException;
 
     List<Producto> getAllProductos() throws JSONException;
+    void deleteProducto(String id) throws JSONException;
+    void deleteEstanteria(String id) throws JSONException;
 }

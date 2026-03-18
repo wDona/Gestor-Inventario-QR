@@ -4,27 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Estanteria {
-    private Long id;
+    private String id;
     private String nombre;
     private List<Producto> productos;
 
-    public Estanteria(Long id, String nombre) {
+    public Estanteria(String id, String nombre) {
         this.id = id;
         this.nombre = nombre;
         this.productos = new ArrayList<>();  // Inicializar lista vacía
     }
 
-    public Estanteria(Long id, String nombre, List<Producto> productos) {
+    public Estanteria(String id, String nombre, List<Producto> productos) {
         this.id = id;
         this.nombre = nombre;
         this.productos = productos != null ? productos : new ArrayList<>();
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -49,8 +49,8 @@ public class ProductoApiImpl implements ProductoApi {
     }
 
     @Override
-    public Producto getProductoById(Long id) {
-        if (id == null || id <= 0) {
+    public Producto getProductoById(String id) {
+        if (id == null || id.isEmpty()) {
             System.out.println("Error, ID no válido");
             throw new IllegalArgumentException("Error, ID no válido");
         }
@@ -86,6 +86,15 @@ public class ProductoApiImpl implements ProductoApi {
         } catch (Exception e) {
             System.out.println("Error al obtener todos los productos: " + e.getMessage());
             return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public void deleteProducto(String id) {
+        try {
+            getMock().deleteProducto(id);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 }

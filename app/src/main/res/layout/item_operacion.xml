@@ -4,100 +4,92 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="8dp"
+    android:layout_marginHorizontal="4dp"
     android:layout_marginVertical="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="@color/bg_card">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <!-- Indicador de estado (barra lateral) -->
+        <!-- Indicador de estado (barra lateral fina) -->
         <View
             android:id="@+id/estadoIndicator"
-            android:layout_width="6dp"
+            android:layout_width="4dp"
             android:layout_height="match_parent"
-            android:background="#FFA500" />
+            android:background="@color/status_pendiente" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="14dp">
 
-            <!-- Tipo de operación -->
-            <TextView
-                android:id="@+id/tvTipoOperacion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tipo operación"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Producto ID -->
-            <TextView
-                android:id="@+id/tvProductoId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Producto ID: 1"
-                android:textSize="14sp" />
-
-            <!-- Estantería ID -->
-            <TextView
-                android:id="@+id/tvEstanteriaId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Estantería ID: 1"
-                android:textSize="14sp" />
-
-            <!-- Cantidad -->
-            <TextView
-                android:id="@+id/tvCantidad"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cantidad: 10"
-                android:textSize="14sp" />
-
-            <!-- Timestamp -->
-            <TextView
-                android:id="@+id/tvTimestamp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="01/01/2026 12:00:00"
-                android:textColor="#757575"
-                android:textSize="12sp" />
-
-            <!-- Fila inferior: Estado + Botón Reintentar -->
+            <!-- Fila 1: Tipo + Estado chip -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-                <!-- Estado -->
                 <TextView
-                    android:id="@+id/tvEstado"
+                    android:id="@+id/tvTipoOperacion"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="PENDIENTE"
+                    android:text="Operación"
+                    android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
-                <!-- Botón Reintentar -->
-                <Button
-                    android:id="@+id/btnReintentar"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                <TextView
+                    android:id="@+id/tvEstado"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Reintentar"
-                    android:textSize="12sp" />
+                    android:layout_height="wrap_content"
+                    style="@style/AppStatusChip"
+                    android:text="PENDIENTE"
+                    android:textColor="@color/white" />
+            </LinearLayout>
 
+            <!-- Fila 2: Detalles compactos en una línea -->
+            <TextView
+                android:id="@+id/tvDetalles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Producto #1 · Est. #2 · 10 uds"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
+
+            <!-- Fila 3: Timestamp + Reintentar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvTimestamp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="hace 5 min"
+                    android:textColor="@color/text_hint"
+                    android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReintentar"
+            style="@style/AppButtonText"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="↻ Reintentar"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:minWidth="120dp" />
             </LinearLayout>
 
         </LinearLayout>
@@ -105,4 +97,3 @@
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
-

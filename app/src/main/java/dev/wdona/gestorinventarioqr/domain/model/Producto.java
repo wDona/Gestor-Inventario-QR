@@ -1,14 +1,14 @@
 package dev.wdona.gestorinventarioqr.domain.model;
 
 public class Producto {
-    private Long id;
+    private String id;
     private String nombre;
     private double precio;
     private int cantidad;       // Cantidad en la estantería actual (contextual)
     private Estanteria estanteria; // Estantería actual (contextual)
 
     // Constructor completo (con contexto de estantería)
-    public Producto(Long id, String nombre, double precio, int cantidad, Estanteria estanteria) {
+    public Producto(String id, String nombre, double precio, int cantidad, Estanteria estanteria) {
         this.id = id;
         this.nombre = nombre;
         this.precio = precio;
@@ -17,7 +17,7 @@ public class Producto {
     }
 
     // Constructor sin estantería (producto base)
-    public Producto(Long id, String nombre, double precio) {
+    public Producto(String id, String nombre, double precio) {
         this.id = id;
         this.nombre = nombre;
         this.precio = precio;
@@ -25,7 +25,7 @@ public class Producto {
         this.estanteria = null;
     }
 
-    public Long getId() {
+    public String getId() {
         return this.id;
     }
 

@@ -11,13 +11,16 @@ public class EstanteriaRemoteDataSourceImpl {
         this.api = api;
     }
 
-    public Estanteria getEstanteriaById(Long id) {
+    public Estanteria getEstanteriaById(String id) {
         return api.getEstanteriaById(id);
     }
-    public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
+    public Estanteria getEstanteriaConProductosById(String idEstanteria) {
         return api.getEstanteriaConProductosById(idEstanteria);
     }
     public void subirCambios(Estanteria... estanterias) {
         api.subirCambios(estanterias);
+    }
+    public void deleteEstanteria(String id) {
+        api.deleteEstanteria(id);
     }
 }

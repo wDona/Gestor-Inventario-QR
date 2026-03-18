@@ -16,27 +16,26 @@ public interface ProductoEstanteriaDao {
     void insertar(ProductoEstanteriaEntity relacion);
 
     @Query("SELECT * FROM ProductoEstanteria WHERE productoId = :productoId AND estanteriaId = :estanteriaId")
-    ProductoEstanteriaEntity getRelacion(Long productoId, Long estanteriaId);
+    ProductoEstanteriaEntity getRelacion(String productoId, String estanteriaId);
 
     @Query("SELECT * FROM ProductoEstanteria WHERE estanteriaId = :estanteriaId")
-    List<ProductoEstanteriaEntity> getProductosPorEstanteria(Long estanteriaId);
+    List<ProductoEstanteriaEntity> getProductosPorEstanteria(String estanteriaId);
 
     @Query("SELECT * FROM ProductoEstanteria WHERE productoId = :productoId")
-    List<ProductoEstanteriaEntity> getEstanteriasPorProducto(Long productoId);
+    List<ProductoEstanteriaEntity> getEstanteriasPorProducto(String productoId);
 
     @Query("UPDATE ProductoEstanteria SET cantidad = cantidad + :cantidad WHERE productoId = :productoId AND estanteriaId = :estanteriaId")
-    void addUnds(Long productoId, Long estanteriaId, int cantidad);
+    void addUnds(String productoId, String estanteriaId, int cantidad);
 
     @Query("UPDATE ProductoEstanteria SET cantidad = cantidad - :cantidad WHERE productoId = :productoId AND estanteriaId = :estanteriaId")
-    void removeUnds(Long productoId, Long estanteriaId, int cantidad);
+    void removeUnds(String productoId, String estanteriaId, int cantidad);
 
     @Query("DELETE FROM ProductoEstanteria WHERE productoId = :productoId AND estanteriaId = :estanteriaId")
-    void eliminarRelacion(Long productoId, Long estanteriaId);
+    void eliminarRelacion(String productoId, String estanteriaId);
 
     @Query("SELECT COALESCE(SUM(cantidad), 0) FROM ProductoEstanteria WHERE productoId = :productoId")
-    int getCantidadTotalProducto(Long productoId);
+    int getCantidadTotalProducto(String productoId);
 
     @Query("SELECT cantidad FROM ProductoEstanteria WHERE productoId = :productoId AND estanteriaId = :estanteriaId")
-    int getCantidadEnEstanteria(Long productoId, Long estanteriaId);
+    int getCantidadEnEstanteria(String productoId, String estanteriaId);
 }
-

@@ -18,7 +18,7 @@ public class EstanteriaLocalDataSourceImpl {
         this.productoDao = productoDao;
     }
 
-    public Estanteria getEstanteriaById(Long id) {
+    public Estanteria getEstanteriaById(String id) {
         EstanteriaEntity entity = dao.getEstanteriaById(id);
         if (entity == null) {
             System.out.println("Estanteria no encontrada con ID: " + id);
@@ -27,7 +27,7 @@ public class EstanteriaLocalDataSourceImpl {
         return EstanteriaMapper.toDomain(entity);
     }
 
-    public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
+    public Estanteria getEstanteriaConProductosById(String idEstanteria) {
         EstanteriaEntity entity = dao.getEstanteriaById(idEstanteria);
         if (entity == null) {
             System.out.println("Estanteria no encontrada con ID: " + idEstanteria);
@@ -39,10 +39,20 @@ public class EstanteriaLocalDataSourceImpl {
     }
 
     public void bajarCambios(Estanteria... estanterias) {
-        // No-op por ahora
+        if (estanterias == null || estanterias.length == 0) return;
+        for (Estanteria est : estanterias) {
+            if (est != null) {
+                EstanteriaEntity entity = EstanteriaMapper.toEntity(est);
+                dao.insertEstanteria(entity); // upsert in DAO
+            }
+        }
     }
 
     public List<Estanteria> getAllEstanterias() {
         return EstanteriaMapper.toDomain(dao.getAllEstanterias());
+    }
+
+    public void deleteEstanteria(String id) {
+        dao.deleteEstanteria(id);
     }
 }

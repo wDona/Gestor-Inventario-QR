@@ -1,5 +1,6 @@
 package dev.wdona.gestorinventarioqr.data.entity;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -7,8 +8,8 @@ import java.util.List;
 
 @Entity(tableName = "Estanteria")
 public class EstanteriaEntity {
-    @PrimaryKey
-    public Long id;
+    @PrimaryKey @NonNull
+    public String id;
     public String nombre;
 
     public String getNombre() {
@@ -19,11 +20,11 @@ public class EstanteriaEntity {
         this.nombre = nombre;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 }

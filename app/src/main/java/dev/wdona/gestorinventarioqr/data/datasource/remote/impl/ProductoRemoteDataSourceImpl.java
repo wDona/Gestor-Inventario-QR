@@ -32,7 +32,7 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
     }
 
     @Override
-    public Producto getProductoById(Long id) {
+    public Producto getProductoById(String id) {
         try {
             return api.getProductoById(id);
         } catch (Exception e) {
@@ -60,5 +60,10 @@ public class ProductoRemoteDataSourceImpl implements ProductoRemoteDataSource {
                 Log.e("ProductoRemoteDS", "Error al subir cambios para producto ID " + producto.getId() + ": " + e.getMessage());
             }
         }
+    }
+
+    @Override
+    public void deleteProducto(String id) {
+        api.deleteProducto(id);
     }
 }

@@ -1,20 +1,21 @@
 package dev.wdona.gestorinventarioqr.data.entity;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "Producto")
 public class ProductoEntity {
-    @PrimaryKey
-    private Long id;
+    @PrimaryKey @NonNull
+    private String id;
     private String nombre;
     private double precio;
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

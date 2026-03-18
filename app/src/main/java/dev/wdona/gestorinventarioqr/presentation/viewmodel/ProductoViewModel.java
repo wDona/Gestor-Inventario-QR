@@ -46,23 +46,31 @@ public class ProductoViewModel extends ViewModel {
         repository.assignProductToEstanteria(producto, estanteria);
     }
 
-    public void moverCantidad(Long productoId, Long estanteriaOrigenId, Long estanteriaDestinoId, int cantidad) throws Exception {
+    public void moverCantidad(String productoId, String estanteriaOrigenId, String estanteriaDestinoId, int cantidad) throws Exception {
         repository.moverCantidad(productoId, estanteriaOrigenId, estanteriaDestinoId, cantidad);
     }
 
-    public Producto getProductoById(Long id) {
+    public Producto getProductoById(String id) {
         return repository.getProductoById(id);
     }
 
-    public Producto getProductoEnEstanteria(Long productoId, Long estanteriaId) {
+    public Producto getProductoEnEstanteria(String productoId, String estanteriaId) {
         return repository.getProductoEnEstanteria(productoId, estanteriaId);
     }
 
-    public List<Producto> getUbicacionesProducto(Long productoId) {
+    public List<Producto> getUbicacionesProducto(String productoId) {
         return repository.getUbicacionesProducto(productoId);
     }
 
     public void sincronizar(Producto... productos) {
         repository.sincronizar(productos);
+    }
+    
+    public void createProducto(Producto producto) throws Exception {
+        repository.createProducto(producto);
+    }
+
+    public void deleteProducto(String id) throws Exception {
+        repository.deleteProducto(id);
     }
 }

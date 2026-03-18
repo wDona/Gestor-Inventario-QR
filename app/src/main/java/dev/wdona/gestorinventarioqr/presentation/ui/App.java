@@ -70,9 +70,10 @@ public class App extends Application {
             ProductoRemoteDataSourceImpl productoRemoteDataSource = new ProductoRemoteDataSourceImpl(productoApi);
             android.util.Log.d(TAG, "RemoteDataSources creados");
 
-            EstanteriaRepositoryImpl estanteriaRepository = new EstanteriaRepositoryImpl(estanteriaRemoteDataSource, estanteriaLocalDataSource);
-            // OperacionRepository se crea ANTES que ProductoRepository porque ProductoRepository lo necesita
-            OperacionRepositoryImpl operacionRepository = new OperacionRepositoryImpl(operacionLocalDataSource, productoRemoteDataSource, estanteriaLocalDataSource, productoLocalDataSource);
+            // OperacionRepository se crea ANTES que EstanteriaRepository y ProductoRepository
+            OperacionRepositoryImpl operacionRepository = new OperacionRepositoryImpl(operacionLocalDataSource, productoRemoteDataSource, estanteriaLocalDataSource, productoLocalDataSource, estanteriaRemoteDataSource);
+            
+            EstanteriaRepositoryImpl estanteriaRepository = new EstanteriaRepositoryImpl(estanteriaRemoteDataSource, estanteriaLocalDataSource, operacionRepository);
             ProductoRepositoryImpl productoRepository = new ProductoRepositoryImpl(productoRemoteDataSource, productoLocalDataSource, operacionRepository);
             android.util.Log.d(TAG, "Repositories creados");
 

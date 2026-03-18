@@ -9,10 +9,12 @@ public interface ProductoRepository {
     void addUndsProduct(Producto producto, int cantidad) throws Exception;
     void removeUndsProduct(Producto producto, int cantidad) throws Exception;
     void assignProductToEstanteria(Producto producto, Estanteria estanteria) throws Exception;
-    void moverCantidad(Long productoId, Long estanteriaOrigenId, Long estanteriaDestinoId, int cantidad) throws Exception;
-    Producto getProductoById(Long id);
-    Producto getProductoEnEstanteria(Long productoId, Long estanteriaId);
-    List<Producto> getUbicacionesProducto(Long productoId);
+    void moverCantidad(String productoId, String estanteriaOrigenId, String estanteriaDestinoId, int cantidad) throws Exception;
+    Producto getProductoById(String id);
+    Producto getProductoEnEstanteria(String productoId, String estanteriaId);
+    List<Producto> getUbicacionesProducto(String productoId);
     void sincronizar(Producto ... productos);
+    void createProducto(Producto producto) throws Exception;
     List<Producto> getAllProductos();
+    void deleteProducto(String id) throws Exception;
 }

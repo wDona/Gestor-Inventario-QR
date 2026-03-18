@@ -26,7 +26,7 @@ public interface OperacionDao {
         @Insert(onConflict = OnConflictStrategy.REPLACE)
         void agregarOperacion(OperacionEntity operacion);
 
-        @Query("SELECT * FROM Operacion_pendiente")
+        @Query("SELECT * FROM Operacion_pendiente ORDER BY id DESC")
         List<OperacionEntity> getAllOperaciones();
 
         @Query("SELECT * FROM Operacion_pendiente WHERE estado = :estado")

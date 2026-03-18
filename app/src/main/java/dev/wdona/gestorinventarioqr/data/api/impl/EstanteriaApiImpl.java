@@ -13,7 +13,7 @@ public class EstanteriaApiImpl implements EstanteriaApi {
     }
 
     @Override
-    public Estanteria getEstanteriaById(Long id) {
+    public Estanteria getEstanteriaById(String id) {
         try {
             return getMock().getEstanteriaById(id);
         } catch (Exception e) {
@@ -23,7 +23,7 @@ public class EstanteriaApiImpl implements EstanteriaApi {
     }
 
     @Override
-    public Estanteria getEstanteriaConProductosById(Long idEstanteria) {
+    public Estanteria getEstanteriaConProductosById(String idEstanteria) {
         try {
             return getMock().getEstanteriaConProductosById(idEstanteria);
         } catch (Exception e) {
@@ -38,6 +38,15 @@ public class EstanteriaApiImpl implements EstanteriaApi {
             getMock().subirCambiosEstanteria(estanterias);
         } catch (Exception e) {
             System.out.println("Error al subir cambios de estanterias: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteEstanteria(String id) {
+        try {
+            getMock().deleteEstanteria(id);
+        } catch (Exception e) {
+            System.out.println("Error al eliminar estanteria por ID: " + e.getMessage());
         }
     }
 }

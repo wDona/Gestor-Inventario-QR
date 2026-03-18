@@ -9,8 +9,8 @@ public class OperacionEntity {
     private Long id;
     private Long timestamp; // Marca de tiempo de la operación
     private String tipoOperacion; // "ADD", "REMOVE", "MOVE"
-    private long productoId; // ID del producto involucrado
-    private Long estanteriaId; // ID de la estantería involucrada
+    private String productoId; // ID del producto involucrado
+    private String estanteriaId; // ID de la estantería involucrada
     private int cantidad; // Cantidad a agregar o remover
     private String estado; // "PENDIENTE", "ENVIADA", "FALLIDA"
 
@@ -38,19 +38,19 @@ public class OperacionEntity {
         this.tipoOperacion = tipoOperacion;
     }
 
-    public long getProductoId() {
+    public String getProductoId() {
         return productoId;
     }
 
-    public void setProductoId(long productoId) {
+    public void setProductoId(String productoId) {
         this.productoId = productoId;
     }
 
-    public Long getEstanteriaId() {
+    public String getEstanteriaId() {
         return estanteriaId;
     }
 
-    public void setEstanteriaId(Long estanteriaId) {
+    public void setEstanteriaId(String estanteriaId) {
         this.estanteriaId = estanteriaId;
     }
 
