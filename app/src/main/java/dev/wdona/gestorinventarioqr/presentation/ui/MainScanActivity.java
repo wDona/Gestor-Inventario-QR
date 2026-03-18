@@ -866,23 +866,23 @@ public class MainScanActivity extends AppCompatActivity implements ScannerManage
     }
 
     private void showProductoOptionsDialog(Producto producto) {
-        String[] opciones = {"Añadir unidades", "Quitar unidades", "Mover cantidad a estantería", "Abrir estantería", "Mostrar detalles", "Eliminar producto"};
+        String[] opciones = {"Abrir estantería", "Añadir unidades", "Quitar unidades", "Mover cantidad a estantería", "Mostrar detalles", "Eliminar producto"};
 
         new AlertDialog.Builder(this)
                 .setTitle(producto.getNombre())
                 .setItems(opciones, (dialog, which) -> {
                     switch (which) {
                         case 0:
-                            showCantidadDialog(producto, true);
+                            abrirEstanteriaDeProducto(producto);
                             break;
                         case 1:
-                            showCantidadDialog(producto, false);
+                            showCantidadDialog(producto, true);
                             break;
                         case 2:
-                            showMoverCantidadDialog(producto);
+                            showCantidadDialog(producto, false);
                             break;
                         case 3:
-                            abrirEstanteriaDeProducto(producto);
+                            showMoverCantidadDialog(producto);
                             break;
                         case 4:
                             // Ejecutar en segundo plano para obtener todas las ubicaciones

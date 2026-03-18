@@ -400,23 +400,7 @@ public class MockDatabaseController implements MockDatabaseOperations {
             JSONUtils.crearArchivoSiNoExiste(PRODUCTOS_FILE);
             JSONUtils.crearArchivoSiNoExiste(RELACIONES_FILE);
 
-            JSONObject estanteriasJson = JSONUtils.cargarJSONDesdeArchivo(ESTANTERIAS_FILE);
-            if (estanteriasJson.length() == 0) {
-                Log.d("MockDB", "Poblando estanterias...");
-                JSONUtils.mockearEstanteriasBase();
-            }
-
-            JSONObject productosJson = JSONUtils.cargarJSONDesdeArchivo(PRODUCTOS_FILE);
-            if (productosJson.length() == 0) {
-                Log.d("MockDB", "Poblando productos...");
-                JSONUtils.mockearProductosBase();
-            }
-
-            JSONObject relacionesJson = JSONUtils.cargarJSONDesdeArchivo(RELACIONES_FILE);
-            if (relacionesJson.length() == 0) {
-                Log.d("MockDB", "Poblando relaciones producto-estanteria...");
-                JSONUtils.mockearRelacionesBase();
-            }
+            // Se ha eliminado la generación automática de datos de prueba
 
             Log.d("MockDB", "MockDatabaseController inicializado correctamente");
         } catch (Exception e) {

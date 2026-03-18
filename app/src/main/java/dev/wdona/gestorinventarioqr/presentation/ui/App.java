@@ -81,11 +81,7 @@ public class App extends Application {
             this.productoViewModel = new ProductoViewModel(productoRepository);
             this.operacionViewModel = new OperacionViewModel(operacionRepository);
             android.util.Log.d(TAG, "ViewModels creados");
-
-            appDatabase.populateInitialData();
-            android.util.Log.d(TAG, "populateInitialData ejecutado");
-
-
+            
             android.util.Log.d(TAG, "Inicialización completada correctamente");
         } catch (Exception e) {
             e.printStackTrace();
